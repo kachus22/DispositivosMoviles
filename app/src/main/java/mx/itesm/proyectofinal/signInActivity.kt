@@ -16,14 +16,15 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.common.api.ApiException
-import mx.itesm.proyectofinal.PatientList.Companion.ACCOUNT_IMG
-import mx.itesm.proyectofinal.PatientList.Companion.ACCOUNT_MAIL
-import mx.itesm.proyectofinal.PatientList.Companion.ACCOUNT_NAME
+
+
+
+
 
 
 class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
     override fun onConnectionFailed(p0: ConnectionResult) {
-        Log.d("CONNECTION_FAILED", "onConnectionFailed: $p0")
+        Log.d("bett", "onConnectionFailed: $p0")
     }
 
     private val RC_SIGN_IN = 9001
@@ -66,7 +67,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
             // Signed in successfully, show authenticated UI.
             updateUI(account)
         } catch (e: ApiException) {
-            Log.w("SIGNIN_EXCEPTION", "failed code: " + e.statusCode)
+            Log.w("aasd", "signInResult:failed code=" + e.statusCode)
             updateUI(null)
         }
 
@@ -95,10 +96,11 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         val imgUrl = account?.photoUrl.toString()
 
         if(account!=null){
+            Log.i("ASd", "asdasd")
             val StartAppIntent = Intent(this,PatientList::class.java)
-            StartAppIntent.putExtra(ACCOUNT_MAIL,mail)
-            StartAppIntent.putExtra(ACCOUNT_NAME,nombre)
-            StartAppIntent.putExtra(ACCOUNT_IMG,imgUrl)
+            StartAppIntent.putExtra("MAIL",mail)
+            StartAppIntent.putExtra("NAME",nombre)
+            StartAppIntent.putExtra("IMG",imgUrl)
             startActivity(StartAppIntent)
         }
     }

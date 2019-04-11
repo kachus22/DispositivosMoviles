@@ -41,13 +41,10 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
      * bluetooth helper and initializes it.
      */
     companion object {
-        val ACCOUNT_MAIL:String = "account_mail"
-        val ACCOUNT_NAME:String = "account_name"
-        val ACCOUNT_IMG:String = "account_img"
-        val PATIENT_KEY:String = "Medicion"
+        var PATIENT_KEY:String = "Medicion"
         var bluetoothHelper: BluetoothHelper? = null
-        val DELETE_ID: String = "id"
-        val DEL: String = "Borrar ?"
+        var DELETE_ID: String = "id"
+        var DEL: String = "Borrar ?"
     }
 
     // Database variable initialization
@@ -64,9 +61,9 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         setContentView(R.layout.activity_patient_list)
         val extras = intent.extras?: return
 
-        val nombre = extras.getString(ACCOUNT_NAME)
-        val mail   = extras.getString(ACCOUNT_MAIL)
-        val photo  = extras.getString(ACCOUNT_IMG)
+        val nombre = extras.getString("NAME")
+        val mail   = extras.getString("MAIL")
+        val photo  = extras.getString("IMG")
 
         textView_nombre.text = "Bienvenido: "+nombre
 
