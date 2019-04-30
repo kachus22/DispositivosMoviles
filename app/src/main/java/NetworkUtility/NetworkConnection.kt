@@ -20,6 +20,9 @@ class NetworkConnection {
                 //$BASE_URL/patients/?format=json
                 URL("http://www.mocky.io/v2/5cc4d8a53400002c0076559c")
 
+        fun buildUrlGetPressuresPatient(mail : String) :URL=
+                URL("$BASE_URL/presures/$mail?format=json")
+
         fun buildUrlPressures(): URL =
                 //http://www.mocky.io/v2/5cc3b67a3400003700765452
                 //$BASE_URL/pressures/?format=json

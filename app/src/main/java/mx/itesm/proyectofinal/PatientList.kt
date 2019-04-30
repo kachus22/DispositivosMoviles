@@ -80,7 +80,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
 
         textView_nombre.text = "Paciente: "+nombre
 
-        bluetoothHelper = BluetoothHelper(this)
+        //bluetoothHelper = BluetoothHelper(this)
 
         val layoutManager = LinearLayoutManager(this)
         lista_pacientes.layoutManager = layoutManager
