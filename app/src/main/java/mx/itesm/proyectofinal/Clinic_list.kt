@@ -41,12 +41,12 @@ class Clinic_list : AppCompatActivity(),CustomItemClickListener2 {
         val layoutManager = LinearLayoutManager(this)
         lista_clinica.layoutManager = layoutManager
 
-        instanceDatabase = MedicionDatabase.getInstance(this)
+        this.instanceDatabase = MedicionDatabase.getInstance(this)
 
         lista_clinica.adapter = adapter
 
         ioThread {
-            val pacienteNum = instanceDatabase.pacienteDao().getAnyPaciente()
+            val pacienteNum = this.instanceDatabase.pacienteDao().getAnyPaciente()
 
             if(pacienteNum == 0){
                 insertPacientes(this)
@@ -58,7 +58,7 @@ class Clinic_list : AppCompatActivity(),CustomItemClickListener2 {
 
     // Loads measurements from database
     private fun loadPacientes() {
-        val pacientes = instanceDatabase.pacienteDao().cargarPacientes()
+        val pacientes = this.instanceDatabase.pacienteDao().cargarPacientes()
 
         pacientes.observe(this, object: Observer<List<Patient>> {
             override fun onChanged(t: List<Patient>?) {
@@ -76,7 +76,7 @@ class Clinic_list : AppCompatActivity(),CustomItemClickListener2 {
         var patients:List<Patient>
         doAsync {
             patients = Medicion.populatePatients(applicationContext)
-            instanceDatabase.pacienteDao().insertartListaPacientes(patients)
+            this@Clinic_list.instanceDatabase.pacienteDao().insertartListaPacientes(patients)
             loadPacientes()
         }
         //ioThread {
