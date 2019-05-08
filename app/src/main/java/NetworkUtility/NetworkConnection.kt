@@ -10,20 +10,28 @@ class NetworkConnection {
 
 
     companion object {
-        const val BASE_URL = "https://fierce-chamber-37767.herokuapp.com/"
+        const val BASE_URL = "https://pacific-tundra-10593.herokuapp.com"
 
         fun buildUrlClinics(): URL =
                 URL("$BASE_URL/clinics/?format=json")
 
-        fun buildUrlPatients(): URL =
+        fun buildUrlPatients(clinic : String): URL =
                 //http://www.mocky.io/v2/5cc4d8a53400002c0076559c
                 //$BASE_URL/patients/?format=json
-                URL("http://www.mocky.io/v2/5cc4d8a53400002c0076559c")
+                URL("$BASE_URL/clinics/$clinic?format=json")
 
+        /*
         fun buildUrlPressures(): URL =
                 //http://www.mocky.io/v2/5cc3b67a3400003700765452
                 //$BASE_URL/pressures/?format=json
             URL("http://www.mocky.io/v2/5cc3b67a3400003700765452")
+        */
+
+        fun buildUrlPressures(patient : String): URL =
+                //http://www.mocky.io/v2/5cc3b67a3400003700765452
+                //$BASE_URL/pressures/?format=json
+            URL("$BASE_URL/patients/$patient/pressures?format=json")
+
 
         fun getResponseFromHttpUrl(url: URL): String =
 

@@ -8,11 +8,11 @@ import android.arch.persistence.room.Query
 @Dao
 interface PacienteDao {
 
-    @Query("SELECT * FROM Patient")
-    fun cargarPacientes(): LiveData<List<Patient>>
+    @Query("SELECT * FROM Patient WHERE clinic = :clinica")
+    fun cargarPacientes(clinica : String): LiveData<List<Patient>>
 
-    @Query("SELECT COUNT (*) FROM Patient")
-    fun getAnyPaciente():Int
+    @Query("SELECT COUNT (*) FROM Patient WHERE clinic = :clinica")
+    fun getAnyPaciente(clinica : String):Int
 
     @Insert
     fun insertarPaciente(paciente: Patient)
@@ -29,6 +29,12 @@ interface PacienteDao {
     //Cargar medicion por Id devuelve una medicion
     @Query("SELECT * FROM Patient WHERE _idP = :id")
     fun cargarPacientePorId(id: Int): Patient
+
+    @Query("SELECT * FROM Patient WHERE email = :emailS")
+    fun cargarPacientePorEmail(emailS: String?): Patient
+
+    @Query("SELECT * FROM Patient")
+    fun cargarTodosPacientes(): List<Patient>
 
     @Query("UPDATE Patient SET clinic = :clinica WHERE _idP = :id")
     fun updatePaciente(id: Int, clinica: String)

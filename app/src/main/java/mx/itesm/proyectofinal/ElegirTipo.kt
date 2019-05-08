@@ -1,11 +1,15 @@
 package mx.itesm.proyectofinal
 
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_elegir_tipo.*
 
 class ElegirTipo : AppCompatActivity() {
@@ -25,19 +29,45 @@ class ElegirTipo : AppCompatActivity() {
 
         button_paciente.setOnClickListener { irPaciente() }
         button_clinica.setOnClickListener { irClinica() }
-        val broadcast_reciever = object : BroadcastReceiver() {
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_tipo, menu)
+        return true
+    }
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            R.id.action_settings -> {
+                val intent = Intent(this, ConfigurationActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            R.id.action_logout -> {
+                val builder = AlertDialog.Builder(this@ElegirTipo)
 
-            override fun onReceive(arg0: Context, intent: Intent) {
-                val action = intent.action
-                if (action == "sign_out") {
-                    finish()
-                    // DO WHATEVER YOU WANT.
+                builder.setTitle("Cerrar sesión")
+
+                builder.setMessage("¿Estás seguro de que quieres cerrar sesión?")
+
+                builder.setPositiveButton("Cerrar sesión") { dialog, which ->
+                    signOut()
                 }
+
+                // Display a negative button on alert dialog
+                builder.setNegativeButton("Cancelar") { dialog, which ->
+                }
+
+                // Finally, make the alert dialog using builder
+                val dialog: AlertDialog = builder.create()
+
+                // Display the alert dialog on app interface
+                dialog.show()
+                true
+            }
+            else -> {
+                false
             }
         }
-        registerReceiver(broadcast_reciever, IntentFilter("sign_out"))
     }
-
     fun irClinica(){
         val StartAppIntent = Intent(this,Clinic_list::class.java)
         StartAppIntent.putExtra(PatientList.ACCOUNT_MAIL,mail)
@@ -52,6 +82,12 @@ class ElegirTipo : AppCompatActivity() {
         StartAppIntent.putExtra(PatientList.ACCOUNT_NAME,nombre)
         StartAppIntent.putExtra(PatientList.ACCOUNT_IMG,photo)
         startActivity(StartAppIntent)
+    }
+    private fun signOut() {
+        Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
+        //finish()
+        PatientList.STATUS = "si"
+        finish()
     }
 
     override fun onBackPressed() {

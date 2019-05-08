@@ -24,11 +24,11 @@ import android.arch.persistence.room.Dao
 // Data handling of the information in the database
 @Dao
 interface MedicionDao {
-    @Query("SELECT * FROM Medicion")
-    fun cargarMeciciones(): LiveData<List<Medicion>>
+    @Query("SELECT * FROM Medicion WHERE iniciales = :paciente")
+    fun cargarMeciciones(paciente : String): LiveData<List<Medicion>>
 
-    @Query("SELECT COUNT (*) FROM Medicion")
-    fun getAnyMedicion():Int
+    @Query("SELECT COUNT (*) FROM Medicion WHERE iniciales = :paciente")
+    fun getAnyMedicion(paciente: String):Int
 
     @Insert
     fun insertarMedicion(medicion: Medicion)

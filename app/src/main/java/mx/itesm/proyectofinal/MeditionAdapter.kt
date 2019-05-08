@@ -69,7 +69,7 @@ class MeditionAdapter(var context: Context,
             }
 
             //itemView.card_name.text = medicion.iniciales
-            itemView.card_date.text = medicion.fecha
+            itemView.card_date.text = "Fecha Med: "+medicion.fecha
             itemView.card_calc.text = medicion.appSistolica.toString() + "/" + medicion.appDiastolica.toString()
             itemView.card_manual.text = medicion.manSistolica.toString() + "/" + medicion.manDiastolica.toString()
         }
