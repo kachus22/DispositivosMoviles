@@ -48,15 +48,17 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         val ACCOUNT_IMG:String = "account_img"
     }
 
+    lateinit var sharedPreference:SharedPreference
     // Database variable initialization
     lateinit var instanceDatabase: MedicionDatabase
-    lateinit var profile: Profile
+    lateinit var profile: signInActivity.Companion.Profile
 
     // The RecyclerView adapter declaration
     val adapter = PatientAdapter(this, this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_clinic_list)
         val extras = intent.extras?: return
         profile = extras.getParcelable(PatientList.ACCOUNT)!!
@@ -242,6 +244,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     }
 
     private fun signOut() {
+        sharedPreference.clearSharedPreference()
         Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
         //finish()
         PatientList.STATUS = "si"

@@ -69,9 +69,11 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         const val BLUETOOTH_ADDRESS = "Address"
         const val LOAD_MEASURE = 4
         const val TAKE_MEASURE = 3
-        var profilePatient: Profile? = null
+        var profilePatient: signInActivity.Companion.Profile? = null
+
     }
 
+    lateinit var sharedPreference:SharedPreference
     lateinit var account: GoogleSignInAccount
     // Database variable initialization
     lateinit var instanceDatabase: MedicionDatabase
@@ -80,7 +82,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
     val adapter = MeditionAdapter(this, this)
     private val TAG = "PATIENTLIST"
 
-    lateinit var profile: Profile
+    lateinit var profile: signInActivity.Companion.Profile
     private var mDevice: BleDeviceData = BleDeviceData("","")
 
     /**
@@ -88,6 +90,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreference=SharedPreference(this)
         this.title = "Registros"
         setContentView(R.layout.activity_patient_list)
         val extras = intent.extras?: return
@@ -303,7 +306,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
             }
         }
     }
-    
+
     /**
      * Check the Location Permission before calling the BLE API's
      */
@@ -408,6 +411,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
     }
 
     private fun signOut() {
+        sharedPreference.clearSharedPreference()
         Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
         //finish()
         PatientList.STATUS = "si"
@@ -416,15 +420,19 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
 
     private var doubleBackToExitPressedOnce = false
     override fun onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
-            moveTaskToBack(true);
-            finish()
+        if(sharedPreference.getValueString("TIPO_USUARIO")=="clinica"){
+            super.onBackPressed()
+        }else{
+            if (doubleBackToExitPressedOnce) {
+                moveTaskToBack(true);
+                finish()
+            }
+
+            this.doubleBackToExitPressedOnce = true
+            Toast.makeText(this, "Presione atrás otra vez para salir", Toast.LENGTH_SHORT).show()
+
+            Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
         }
-
-        this.doubleBackToExitPressedOnce = true
-        Toast.makeText(this, "Presione atrás otra vez para salir", Toast.LENGTH_SHORT).show()
-
-        Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
     }
 
 }

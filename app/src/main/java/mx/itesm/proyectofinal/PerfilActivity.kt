@@ -36,7 +36,7 @@ import java.io.IOException
 // Configuration activity declaration and view inflation
 class PerfilActivity : AppCompatActivity() {
     lateinit var instanceDatabase: MedicionDatabase
-    lateinit var profile: Profile
+    lateinit var profile: signInActivity.Companion.Profile
 
 
     // Creates the activity and inflates the view
