@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.Window
 import android.view.WindowManager
+import android.widget.Toast
 
 class SplashActivity : AppCompatActivity() {
 
@@ -18,9 +19,28 @@ class SplashActivity : AppCompatActivity() {
 
         //4 segundos splash screen
         Handler().postDelayed({
-            startActivity(Intent(this@SplashActivity, ElegirTipo::class.java))
+            lateinit var startAppIntent:Intent
+            val sharedPreference:SharedPreference=SharedPreference(this)
+            if(sharedPreference.getValueString("TIPO_USUARIO") == "clinica"){
+                Toast.makeText(this,"Ya se tiene una clinica iniciada", Toast.LENGTH_LONG)
+                startAppIntent = Intent(this@SplashActivity,Clinic_list::class.java)
+                startAppIntent.putExtra(PatientList.ACCOUNT, sharedPreference.getValueProfile("ACCOUNT"))
+                startActivity(startAppIntent)
+                //startActivity(Intent(this@SplashActivity, Clinic_list::class.java))
+                PatientList.ACTIV = "sign"
+            }else{
+                if(sharedPreference.getValueString("TIPO_USUARIO") == "paciente"){
+                    Toast.makeText(this,"Ya se tiene un paciente iniciada", Toast.LENGTH_LONG)
+                    startAppIntent = Intent(this@SplashActivity,PatientList::class.java)
+                    startAppIntent.putExtra(PatientList.ACCOUNT, sharedPreference.getValueProfile("ACCOUNT"))
+                    startActivity(startAppIntent)
+                    //startActivity(Intent(this@SplashActivity, PatientList::class.java))
+                }else{
+                    Toast.makeText(this,"No se tiene nada iniciado", Toast.LENGTH_LONG)
+                    startActivity(Intent(this@SplashActivity, ElegirTipo::class.java))
+                }
+            }
             finish()
         },1000)
-
     }
 }

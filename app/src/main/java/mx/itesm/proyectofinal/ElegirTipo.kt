@@ -19,6 +19,7 @@ class ElegirTipo : AppCompatActivity() {
         val TYPE:String = "tipo"
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_elegir_tipo)
@@ -29,12 +30,14 @@ class ElegirTipo : AppCompatActivity() {
         val StartAppIntent = Intent(this,signInActivity::class.java)
         StartAppIntent.putExtra(TYPE,"clinica")
         startActivity(StartAppIntent)
+        finish()
     }
 
     fun signInPaciente(){
         val StartAppIntent = Intent(this,signInActivity::class.java)
         StartAppIntent.putExtra(TYPE,"paciente")
         startActivity(StartAppIntent)
+        finish()
     }
 
     override fun onBackPressed() {

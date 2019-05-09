@@ -43,11 +43,10 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
     private lateinit var detailsJSON: JSONObject
     lateinit var profile: Profile
     lateinit var tipo: String
-
     private val RC_SIGN_IN = 9001
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mGoogleSignInClient : GoogleSignInClient? = null
-
+    lateinit var sharedPreference:SharedPreference
 
 
     override fun onConnectionFailed(p0: ConnectionResult) {
@@ -56,6 +55,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_sign_in)
         //btnLogin = findViewById(R.id.btnLogin)
         //btnLogout = findViewById(R.id.btnLogout)
@@ -176,13 +176,18 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
 
     override fun fetchComplete() {
         lateinit var startAppIntent:Intent
+        val TIPO_USUARIO = "TIPO_USUARIO"
         PatientList.STATUS = "no"
         when(tipo){
             "clinica"->{
+                sharedPreference.save(TIPO_USUARIO,"clinica")
+                sharedPreference.save("ACCOUNT",profile)
                 startAppIntent = Intent(this,Clinic_list::class.java)
                 PatientList.ACTIV = "sign"
             }
             "paciente"->{
+                sharedPreference.save(TIPO_USUARIO,"paciente")
+                sharedPreference.save("ACCOUNT",profile)
                 startAppIntent = Intent(this,PatientList::class.java)
             }
 
@@ -191,8 +196,9 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         startActivity(startAppIntent)
         finish()
     }
+    companion object {
+        // Data class. An ArrayList of this type is sent to ResultsActivity
+        @Parcelize
+        data class Profile(var mail: String, var name: String, var img: String) : Parcelable
+    }
 }
-
-// Data class. An ArrayList of this type is sent to ResultsActivity
-@Parcelize
-data class Profile(var mail: String, var name: String, var img: String) : Parcelable
