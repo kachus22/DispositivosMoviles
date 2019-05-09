@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.row_patient.view.*
 import mx.itesm.proyectofinal.Utils.CustomItemClickListener2
+import java.util.*
 
 
 class PatientAdapter(var context: Context,

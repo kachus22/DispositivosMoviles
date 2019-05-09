@@ -82,4 +82,5 @@ dependencies {
     implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
     implementation 'com.google.android.gms:play-services-vision:11.8.0'
 
+
 }

@@ -11,4 +11,11 @@
         android:title="@string/settings_logout"
         app:showAsAction="never" />
 
+    <item android:id="@+id/searchButon"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="always"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        android:title="Search"/>
+    <item android:title="Buscar" app:showAsAction="always"/>
+
 </menu>

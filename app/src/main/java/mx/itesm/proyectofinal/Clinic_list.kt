@@ -3,28 +3,22 @@ package mx.itesm.proyectofinal
 import Database.Medicion
 import Database.MedicionDatabase
 import Database.Patient
-import Database.ioThread
 import NetworkUtility.OkHttpRequest
 import android.app.AlertDialog
-import android.arch.lifecycle.Observer
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
-import com.google.zxing.integration.android.IntentIntegrator
-import android.support.v4.app.ActivityCompat
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.SearchView
+import android.text.TextUtils
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
-import com.google.android.gms.vision.barcode.Barcode
-import com.google.android.gms.vision.barcode.BarcodeDetector
+import com.google.zxing.integration.android.IntentIntegrator
 import kotlinx.android.synthetic.main.activity_clinic_list.*
 import mx.itesm.proyectofinal.R.id.action_logout
 import mx.itesm.proyectofinal.Utils.CustomItemClickListener2
@@ -37,7 +31,6 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.util.jar.Manifest
 
 class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
@@ -171,7 +164,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                 startQR()
                 true
             }
-            R.id.action_logout -> {
+            action_logout -> {
                 val builder = AlertDialog.Builder(this@Clinic_list)
 
                 builder.setTitle("Cerrar sesión")
@@ -237,5 +230,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
         Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
     }
+
+
 
 }

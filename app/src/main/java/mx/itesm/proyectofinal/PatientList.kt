@@ -19,6 +19,7 @@ package mx.itesm.proyectofinal
 
 import Database.Medicion
 import Database.MedicionDatabase
+import Database.cargaMeds
 import Database.ioThread
 import android.Manifest
 import android.app.Activity
@@ -38,11 +39,13 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.SearchView
 import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.android.synthetic.main.activity_patient_list.*
 import org.jetbrains.anko.doAsync
 import mx.itesm.proyectofinal.BLE.*
+import mx.itesm.proyectofinal.PatientList.Companion.searchView
 import mx.itesm.proyectofinal.Utils.CustomItemClickListener
 import kotlin.system.exitProcess
 
@@ -71,6 +74,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         const val LOAD_MEASURE = 4
         const val TAKE_MEASURE = 3
         var profilePatient: Profile? = null
+        private lateinit var searchView: SearchView
     }
 
     lateinit var account: GoogleSignInAccount
@@ -152,6 +156,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         }
         return true
     }
+
 
     // Starts the MainActivity, which starts measuring data from the bluetooth device.
     private fun onPress() {
