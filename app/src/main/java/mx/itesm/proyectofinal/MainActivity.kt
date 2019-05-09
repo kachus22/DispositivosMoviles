@@ -86,9 +86,7 @@ class MainActivity : AppCompatActivity() {
         connectDevice(mDevice.mDeviceAddress)
 
 //        launchRefreshUiCheck()
-
-        val buttonScan: View = findViewById(R.id.button)
-        buttonScan.setOnClickListener { onClick() }
+,
         gauge = findViewById(R.id.gauge)
         chart = findViewById(R.id.chart)
         chart.setNoDataText(resources.getString(R.string.chart_nodata))
