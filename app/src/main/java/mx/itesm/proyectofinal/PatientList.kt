@@ -116,6 +116,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
          // Local Database load
         ioThread {
             val measureNum = instanceDatabase.medicionDao().getAnyMedicion(profile.mail)
+//            insertMeasurements(this)
             if(measureNum == 0){
                 insertMeasurements(this)
             } else{

@@ -95,6 +95,7 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         chart.setNoDataTextColor(Color.GRAY)
         chart.setDrawBorders(false)
         chart.isKeepPositionOnRotation = true
+        chart.description.isEnabled = false
 
         calculateResults(dataList)
         verifyNurseMode()
@@ -149,11 +150,19 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     override fun onClick(view: View?) {
         when(view!!.id){
             R.id.button_accept -> {
-                if(!(edit_diastolic_manual.text.isEmpty() || edit_systolic_manual.text.isEmpty() || selectedArm == "" || edit_initials.text.isEmpty())) {
+                if(!(edit_diastolic_manual.text.isEmpty() || edit_systolic_manual.text.isEmpty() || selectedArm == "")) {
 
                     fecha = toString(Calendar.getInstance().time)
 
                     val instanceDatabase = MedicionDatabase.getInstance(this)
+                    var graphString = ""
+                    Log.d("asd",entries.size.toString())
+                    for(i in 0..entries.size-1){
+                        graphString += "${entries[i].x};${entries[i].y}"
+                    }
+
+                    Log.d("asd","asd")
+
                     ioThread {
                         instanceDatabase.medicionDao().insertarMedicion(Medicion(systolicRes.toInt().toString(),
                                 diastolicRes.toInt().toString(),
@@ -162,8 +171,9 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
                                 fecha,
                                 validateCheck,
                                 selectedArm,
-                                null,
-                                edit_initials.text.toString()))
+                                graphString,
+                                graphString))
+                        // TODO borrar iniciales de bd
                     }
                     if (NetworkConnection.isNetworkConnected(this)) {
                         postPressure()
@@ -421,7 +431,6 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
             tv_device_diastolic.visibility = View.GONE
             tv_device_systolic.visibility = View.GONE
             divider2.visibility = View.GONE
-            divider3.visibility = View.GONE
 //            time_graph.visibility = View.INVISIBLE
         }
     }

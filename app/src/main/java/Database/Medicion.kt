@@ -42,7 +42,7 @@ data class Medicion(@ColumnInfo(name = "appSistolica") var appSistolica: String?
                     @ColumnInfo(name = "fecha") var fecha: String?,
                     @ColumnInfo(name = "verificado") var verificado: Boolean?,
                     @ColumnInfo(name ="brazo") var brazo: String?,
-                    @ColumnInfo(name = "grafica") var grafica: ByteArray?,
+                    @ColumnInfo(name = "grafica") var grafica: String?,
                     @ColumnInfo(name = "iniciales") var iniciales: String?): Parcelable {
 
     @ColumnInfo(name = "_id")
@@ -150,11 +150,11 @@ fun parseJsonMeds(jsonString: String): MutableList<Medicion>{
             val m_sysMed = jsonMed.getInt("manual_systolic").toString()
             val m_disMed = jsonMed.getInt("manual_diastolic").toString()
             val armMedMed = jsonMed.getString("arm")
-            //patient object
+            val graphMed = jsonMed.getString("data")
             val patientMed = jsonMed.getJSONObject("patient")
             val patientMedMail = patientMed.getString("email").toString().toLowerCase()
 
-            press = Medicion(sysMed,disMed,m_sysMed,m_disMed,dateMed,verMed,armMedMed,null,patientMedMail)
+            press = Medicion(sysMed,disMed,m_sysMed,m_disMed,dateMed,verMed,armMedMed,graphMed,patientMedMail)
             pressures.add(press)
         }
     }catch (e: JSONException) {

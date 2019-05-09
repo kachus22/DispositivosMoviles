@@ -30,6 +30,9 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import kotlinx.android.synthetic.main.activity_detail.*
 import mx.itesm.proyectofinal.PatientList.Companion.DEL
 import mx.itesm.proyectofinal.PatientList.Companion.DELETE_ID
@@ -73,8 +76,21 @@ class ActivityDetail : AppCompatActivity() {
                     }
 
                     if(measurementObj.grafica != null) {
-                        val image = BitmapFactory.decodeByteArray(measurementObj.grafica, 0, measurementObj.grafica!!.size)
-                        image_graph.setImageBitmap(image)
+                        var values = measurementObj.grafica!!.split(';')
+                        var entries: MutableList<Entry> = mutableListOf()
+                        var time: Float = 0F
+                        for (x in 1..values.size-1){
+                            var bueno = values[x].split('.')
+                            entries.add(Entry(time, bueno[0].toFloat()))
+                            time += 6
+                        }
+                        val dataSet = LineDataSet(entries, resources.getString(R.string.chart_label)) // add entries to dataset
+                        dataSet.color = resources.getColor(R.color.colorButton)
+                        dataSet.setDrawCircles(false)
+                        val lineData = LineData(dataSet)
+                        chart.data = lineData
+                        chart.notifyDataSetChanged() // let the chart know it's data changed
+                        chart.invalidate() // refresh chart
                     }
                 }
             })

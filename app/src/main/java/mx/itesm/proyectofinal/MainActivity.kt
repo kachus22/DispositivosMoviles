@@ -197,6 +197,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 BLEConstants.ACTION_GATT_DISCONNECTED.equals(action) -> {
                     Log.i(TAG, "ACTION_GATT_DISCONNECTED ")
+                    BLEConnectionManager.disconnect()
+                    setResult(Activity.RESULT_CANCELED)
+                    finish()
                 }
                 BLEConstants.ACTION_GATT_SERVICES_DISCOVERED.equals(action) -> {
                     Log.i(TAG, "ACTION_GATT_SERVICES_DISCOVERED ")
