@@ -23,6 +23,11 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.common.api.ApiException
 import android.support.annotation.NonNull
+import android.widget.Toast
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import com.google.android.gms.tasks.OnCompleteListener
 import kotlinx.android.parcel.Parcelize
 import me.rohanjahagirdar.outofeden.Utils.FetchCompleteListener
@@ -47,6 +52,8 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mGoogleSignInClient : GoogleSignInClient? = null
     lateinit var sharedPreference:SharedPreference
+    lateinit var queue: RequestQueue
+
 
 
     override fun onConnectionFailed(p0: ConnectionResult) {
@@ -57,6 +64,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         super.onCreate(savedInstanceState)
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_sign_in)
+        queue = Volley.newRequestQueue(this)
         //btnLogin = findViewById(R.id.btnLogin)
         //btnLogout = findViewById(R.id.btnLogout)
         // Configure sign-in to request the user's ID, email address, and basic
@@ -80,6 +88,9 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
 
         if(PatientList.STATUS == "si") {
             signOut()
+            val startAppIntent = Intent(this,ElegirTipo::class.java)
+            startActivity(startAppIntent)
+            finish()
         }else {
             val account = GoogleSignIn.getLastSignedInAccount(this)
             updateUILogged(account)
@@ -149,29 +160,17 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
     }
 
     fun checkUser(email: String, name: String){
-        var client = OkHttpClient()
-        var request= OkHttpRequest(client)
         val url = buildStringAccount()
         val map: HashMap<String, String> = hashMapOf("name" to profile.name, "email" to profile.mail)
-
-        request.POST(url, map, object: Callback {
-            override fun onResponse(call: Call?, response: Response) {
-                val responseData = response.body()?.string()
-                runOnUiThread{
-                    try {
-                        var json = JSONObject(responseData)
-                        detailsJSON = json
-                        fetchComplete()
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call?, e: IOException?) {
-                Log.d("FAILURE", "REQUEST FAILURE")
-            }
-        })
+        val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
+                com.android.volley.Response.Listener<JSONObject> { response ->
+                    // Display the first 500 characters of the response string.
+                    fetchComplete()
+                },
+                com.android.volley.Response.ErrorListener { error->
+                    Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                })
+        queue.add(jRequest)
     }
 
     override fun fetchComplete() {
@@ -194,7 +193,6 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
         startAppIntent.putExtra(ACCOUNT, profile)
         startActivity(startAppIntent)
-        finish()
     }
     companion object {
         // Data class. An ArrayList of this type is sent to ResultsActivity

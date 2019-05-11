@@ -14,9 +14,11 @@ class NetworkConnection {
 
         fun buildStringAccount(): String = "$BASE_URL/account/"
 
-        fun buildStringPatients(clinic: String): String = "$BASE_URL/clinics/$clinic/"
+        fun buildStringClinicPatients(clinic: String): String = "$BASE_URL/clinics/$clinic/"
 
-        fun buildStringPatientsPressures(patient: String): String = "$BASE_URL/clinics/$patient/pressures/"
+        fun buildStringPatients(mail: String): String = "$BASE_URL/patients/$mail"
+
+        fun buildStringPatientsPressures(patient: String): String = "$BASE_URL/patients/$patient/pressures"
 
         fun buildStringPressures(): String = "$BASE_URL/pressures/"
 

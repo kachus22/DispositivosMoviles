@@ -32,6 +32,10 @@ import android.util.Log
 import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -76,6 +80,8 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     var validateCheck: Boolean = false
     var selectedArm: String = ""
     var fecha: String? = ""
+    lateinit var queue: RequestQueue
+
 
     private lateinit var chart: LineChart
     var entries: MutableList<Entry> = mutableListOf()
@@ -85,6 +91,7 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         setContentView(R.layout.activity_results)
 
         this.title = "Resultados"
+        queue = Volley.newRequestQueue(this)
 
         val extras = intent.extras?:return
 
@@ -124,26 +131,15 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
                 "arm" to selectedArm,
                 "patient" to PatientList.profilePatient!!.mail
                 )
-
-        request.POST(url, map, object: Callback {
-            override fun onResponse(call: Call?, response: Response) {
-                println(response.toString())
-                val responseData = response.body()?.string()
-                runOnUiThread{
-                    try {
-                        var json = JSONObject(responseData)
-                        detailsJSON = json
-                        fetchComplete()
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call?, e: IOException?) {
-                Log.d("FAILURE", "REQUEST FAILURE")
-            }
-        })
+        val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
+                com.android.volley.Response.Listener<JSONObject> { response ->
+                    // Display the first 500 characters of the response string.
+                    fetchComplete()
+                },
+                com.android.volley.Response.ErrorListener { error->
+                    Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                })
+        queue.add(jRequest)
     }
 
     override fun onClick(view: View?) {
