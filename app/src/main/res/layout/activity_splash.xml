@@ -10,7 +10,7 @@
     tools:context=".SplashActivity">
 
     <ImageView
-        android:layout_width="349dp"
+        android:layout_width="match_parent"
         android:layout_height="250dp"
         android:src="@drawable/logo" />
 

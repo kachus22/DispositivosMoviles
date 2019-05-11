@@ -3,41 +3,26 @@ package mx.itesm.proyectofinal
 import Database.Medicion
 import Database.MedicionDatabase
 import Database.Patient
-import Database.ioThread
-import NetworkUtility.OkHttpRequest
 import android.app.AlertDialog
-import android.arch.lifecycle.Observer
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import com.google.zxing.integration.android.IntentIntegrator
-import android.support.v4.app.ActivityCompat
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import com.android.volley.toolbox.Volley
-import com.google.android.gms.vision.barcode.Barcode
-import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.android.synthetic.main.activity_clinic_list.*
-import mx.itesm.proyectofinal.R.id.action_logout
 import mx.itesm.proyectofinal.Utils.CustomItemClickListener2
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
 import org.jetbrains.anko.doAsync
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.util.jar.Manifest
 import NetworkUtility.NetworkConnection
 import com.android.volley.RequestQueue
 import com.android.volley.Request
@@ -159,11 +144,11 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         //val intent = Intent(this, ::class.java)
         //intent.putExtra(PatientList.PATIENT_KEY, patient._idP)
         //startActivityForResult(intent, 3)
-        val StartAppIntent = Intent(this,PatientList::class.java)
+        val startAppIntent = Intent(this,PatientList::class.java)
         PatientList.ACTIV = "clinic"
-        StartAppIntent.putExtra(ACCOUNT_NAME,patient.FNameP)
-        StartAppIntent.putExtra(ACCOUNT_MAIL,patient.mailC)
-        startActivity(StartAppIntent)
+        startAppIntent.putExtra(PatientList.ACCOUNT, patient)
+        startAppIntent.putExtra(PatientList.ACCOUNT_TYPE, 0)
+        startActivity(startAppIntent)
     }
 
     // Handles clicking options item
@@ -180,12 +165,12 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
                 builder.setMessage("¿Estás seguro de que quieres cerrar sesión?")
 
-                builder.setPositiveButton("Cerrar sesión") { dialog, which ->
+                builder.setPositiveButton("Cerrar sesión") { _, _ ->
                     signOut()
                 }
 
                 // Display a negative button on alert dialog
-                builder.setNegativeButton("Cancelar") { dialog, which ->
+                builder.setNegativeButton("Cancelar") { _, _ ->
                 }
 
                 // Finally, make the alert dialog using builder
@@ -226,7 +211,6 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                             Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
                         })
                 queue.add(jRequest)
-
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)

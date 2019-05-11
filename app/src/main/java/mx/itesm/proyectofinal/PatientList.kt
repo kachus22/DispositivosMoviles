@@ -69,7 +69,6 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         const val PATIENT_KEY: String = "Medicion"
         const val REQUEST_ENABLE_BT: Int = 10
         const val REQUEST_COARSE_LOCATION_PERMISSION: Int = 11
-        const val BLUETOOTH_DISCONNECT = 12
         const val BLUETOOTH_DEVICE = 5
         const val BLUETOOTH_ADDRESS = "Address"
         const val LOAD_MEASURE = 4
@@ -100,16 +99,15 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         queue = Volley.newRequestQueue(this)
         setContentView(R.layout.activity_patient_list)
         val extras = intent.extras?: return
-        if(ACTIV == "clinic"){
-            val name= extras.getString(Clinic_list.ACCOUNT_NAME)
-            val mail= extras.getString(Clinic_list.ACCOUNT_MAIL)
-            this.profile = signInActivity.Companion.Profile(mail!!, name!!, ""!!)
-
+        if(ACTIV == "clinic") {
+            val perf = extras.getParcelable<Patient>(ACCOUNT)
+            this.profile = signInActivity.Companion.Profile(perf.mailC!!, perf.FNameP!!, ""!!)
         }
         else{
             profile = extras.getParcelable(ACCOUNT)!!
             profilePatient = profile
         }
+
         val type = extras.getInt(ACCOUNT_TYPE)
 
 //        actionBar.setTitle("Hello world App")
@@ -128,7 +126,6 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         lista_pacientes.adapter = adapter
 
         loadMediciones()
-
         floatingActionButton.setOnClickListener { onPress() }
         checkLocationPermission()
     }
@@ -230,7 +227,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         startActivityForResult(intent, LOAD_MEASURE)
     }
 
-    // Loads measurements from database
+    // Loads measurements from api
     private fun loadMediciones() {
         val url = buildStringPatientsPressures(profile.mail)
         val jRequest =  StringRequest(Request.Method.GET, url,

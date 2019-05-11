@@ -63,7 +63,7 @@
     <string name="chart_label">Presión arterial</string>
 
     <string name="type_patient">Perfil personal</string>
-    <string name="type_clinic">Clínica</string>
+    <string name="type_clinic">Mis Pacientes</string>
 
     <string name="internet_no_title">No estás conectado</string>
     <string name="internet_no_desc">Por favor conectate a una red para iniciar sesión</string>

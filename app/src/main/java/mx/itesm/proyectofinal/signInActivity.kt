@@ -1,10 +1,7 @@
 package mx.itesm.proyectofinal
 
-import Database.MedicionDatabase
 import NetworkUtility.NetworkConnection
-import NetworkUtility.NetworkConnection.Companion
 import NetworkUtility.NetworkConnection.Companion.buildStringAccount
-import NetworkUtility.OkHttpRequest
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -13,34 +10,24 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.android.synthetic.main.activity_sign_in.*
 import android.content.Intent
 import android.os.Parcelable
-import android.support.v4.app.FragmentActivity
 import android.util.Log
-import android.widget.Button
-import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.common.api.ApiException
-import android.support.annotation.NonNull
 import android.widget.Toast
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.google.android.gms.tasks.OnCompleteListener
 import kotlinx.android.parcel.Parcelize
 import me.rohanjahagirdar.outofeden.Utils.FetchCompleteListener
 import mx.itesm.proyectofinal.PatientList.Companion.ACCOUNT
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Response
+import mx.itesm.proyectofinal.PatientList.Companion.ACCOUNT_TYPE
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.okButton
-import org.json.JSONException
 import org.json.JSONObject
-import java.io.IOException
 
 
 class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener, FetchCompleteListener {
@@ -85,7 +72,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
 
     override fun onStart() {
         super.onStart()
-
+        PatientList.ACTIV = "sign"
         if(PatientList.STATUS == "si") {
             signOut()
             val startAppIntent = Intent(this,ElegirTipo::class.java)
@@ -182,12 +169,13 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
                 sharedPreference.save(TIPO_USUARIO,"clinica")
                 sharedPreference.save("ACCOUNT",profile)
                 startAppIntent = Intent(this,Clinic_list::class.java)
-                PatientList.ACTIV = "sign"
+                startAppIntent.putExtra(ACCOUNT_TYPE, 0)
             }
             "paciente"->{
                 sharedPreference.save(TIPO_USUARIO,"paciente")
                 sharedPreference.save("ACCOUNT",profile)
                 startAppIntent = Intent(this,PatientList::class.java)
+                startAppIntent.putExtra(ACCOUNT_TYPE, 1)
             }
 
         }

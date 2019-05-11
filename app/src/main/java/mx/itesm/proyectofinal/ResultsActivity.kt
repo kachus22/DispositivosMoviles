@@ -21,9 +21,7 @@ import Database.Medicion
 import Database.MedicionDatabase
 import Database.ioThread
 import NetworkUtility.NetworkConnection
-import NetworkUtility.OkHttpRequest
 import android.app.Activity
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
@@ -42,21 +40,13 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import kotlinx.android.synthetic.main.activity_results.*
 import me.rohanjahagirdar.outofeden.Utils.FetchCompleteListener
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Response
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.okButton
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.*
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 /*
  * Resulsts activtiy. Creates the activity and inflates the view.
@@ -102,6 +92,7 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         chart.setNoDataTextColor(Color.GRAY)
         chart.setDrawBorders(false)
         chart.isKeepPositionOnRotation = true
+        chart.description.isEnabled = false
 
         calculateResults(dataList)
         verifyNurseMode()
@@ -115,13 +106,11 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     }
 
     fun postPressure(){
-        var client = OkHttpClient()
-        var request= OkHttpRequest(client)
         val url = NetworkConnection.buildStringPressures()
         val sdf = SimpleDateFormat("yyyy-MM-dd")
         val currentDate = sdf.format(Date())
 
-        val map: HashMap<String, String> = hashMapOf(
+        val map: HashMap<String, Any> = hashMapOf(
                 "date" to currentDate,
                 "verified" to validateCheck.toString(),
                 "systolic" to systolicRes.toInt().toString(),
@@ -145,11 +134,19 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     override fun onClick(view: View?) {
         when(view!!.id){
             R.id.button_accept -> {
-                if(!(edit_diastolic_manual.text.isEmpty() || edit_systolic_manual.text.isEmpty() || selectedArm == "" || edit_initials.text.isEmpty())) {
+                if(!(edit_diastolic_manual.text.isEmpty() || edit_systolic_manual.text.isEmpty() || selectedArm == "")) {
 
                     fecha = toString(Calendar.getInstance().time)
 
                     val instanceDatabase = MedicionDatabase.getInstance(this)
+                    var graphString = ""
+                    Log.d("asd",entries.size.toString())
+                    for(i in 0..entries.size-1){
+                        graphString += "${entries[i].x};${entries[i].y}"
+                    }
+
+                    Log.d("asd","asd")
+
                     ioThread {
                         instanceDatabase.medicionDao().insertarMedicion(Medicion(systolicRes.toInt().toString(),
                                 diastolicRes.toInt().toString(),
@@ -158,8 +155,9 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
                                 fecha,
                                 validateCheck,
                                 selectedArm,
-                                null,
-                                edit_initials.text.toString()))
+                                graphString,
+                                graphString))
+                        // TODO borrar iniciales de bd
                     }
                     if (NetworkConnection.isNetworkConnected(this)) {
                         postPressure()
@@ -417,7 +415,6 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
             tv_device_diastolic.visibility = View.GONE
             tv_device_systolic.visibility = View.GONE
             divider2.visibility = View.GONE
-            divider3.visibility = View.GONE
 //            time_graph.visibility = View.INVISIBLE
         }
     }
