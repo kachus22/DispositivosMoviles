@@ -41,8 +41,6 @@ import android.view.WindowManager
 
 
 
-
-
 // Configuration activity declaration and view inflation
 class PerfilActivity : AppCompatActivity() {
     lateinit var instanceDatabase: MedicionDatabase
