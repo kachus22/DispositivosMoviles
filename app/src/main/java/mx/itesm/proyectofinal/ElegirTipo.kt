@@ -27,6 +27,12 @@ class ElegirTipo : AppCompatActivity() {
         button_clinica.setOnClickListener { signInClinica() }
     }
 
+    override fun onStart() {
+        super.onStart()
+        button_paciente.setOnClickListener { signInPaciente() }
+        button_clinica.setOnClickListener { signInClinica() }
+    }
+
     fun signInClinica(){
         val StartAppIntent = Intent(this,signInActivity::class.java)
         StartAppIntent.putExtra(TYPE,"clinica")

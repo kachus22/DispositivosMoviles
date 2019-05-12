@@ -418,6 +418,8 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
         //finish()
         PatientList.STATUS = "si"
+        val StartAppIntent = Intent(this,ElegirTipo::class.java)
+        startActivity(StartAppIntent)
         finish()
     }
 
