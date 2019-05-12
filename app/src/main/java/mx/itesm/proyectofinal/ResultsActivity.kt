@@ -20,18 +20,29 @@ package mx.itesm.proyectofinal
 import Database.Medicion
 import Database.MedicionDatabase
 import Database.ioThread
+import NetworkUtility.NetworkConnection
 import android.app.Activity
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
-import com.jjoe64.graphview.series.DataPoint
-import com.jjoe64.graphview.series.LineGraphSeries
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import kotlinx.android.synthetic.main.activity_results.*
+import me.rohanjahagirdar.outofeden.Utils.FetchCompleteListener
+import org.jetbrains.anko.alert
+import org.jetbrains.anko.okButton
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.Math.abs
 import java.text.SimpleDateFormat
@@ -40,7 +51,9 @@ import java.util.*
 /*
  * Resulsts activtiy. Creates the activity and inflates the view.
  */
-class ResultsActivity : AppCompatActivity(), View.OnClickListener {
+class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchCompleteListener {
+
+    private lateinit var detailsJSON: JSONObject
 
     companion object {
         const val SYSTOLIC_DEVICE = "systolic_results"
@@ -56,23 +69,30 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener {
     var diastolicRes: Double = 0.0
     var validateCheck: Boolean = false
     var selectedArm: String = ""
+    var fecha: String? = ""
+    lateinit var queue: RequestQueue
 
-    private var mSeries: LineGraphSeries<DataPoint?> = LineGraphSeries()
+
+    private lateinit var chart: LineChart
+    var entries: MutableList<Entry> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_results)
 
         this.title = "Resultados"
+        queue = Volley.newRequestQueue(this)
 
         val extras = intent.extras?:return
 
         val dataList: List<Data> = extras.getParcelableArrayList(MainActivity.LIST_ID)!!
 
-        mSeries.color = Color.parseColor("#FF6860")
-        time_graph.addSeries(mSeries)
-        time_graph.title = "Datos de presión"
-
+        chart = findViewById(R.id.chart)
+        chart.setNoDataText(resources.getString(R.string.chart_nodata))
+        chart.setNoDataTextColor(Color.GRAY)
+        chart.setDrawBorders(false)
+        chart.isKeepPositionOnRotation = true
+        chart.description.isEnabled = false
 
         calculateResults(dataList)
         verifyNurseMode()
@@ -85,17 +105,51 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    fun postPressure(graphString: String){
+        val url = NetworkConnection.buildStringPressures()
+        val sdf = SimpleDateFormat("yyyy-MM-dd")
+        val currentDate = sdf.format(Date())
+
+        val map: HashMap<String, Any> = hashMapOf(
+                "date" to currentDate,
+                "verified" to validateCheck.toString(),
+                "systolic" to systolicRes.toInt().toString(),
+                "diastolic" to diastolicRes.toInt().toString(),
+                "manual_systolic" to edit_systolic_manual.text.toString(),
+                "manual_diastolic" to edit_diastolic_manual.text.toString(),
+                "arm" to selectedArm,
+                "data" to graphString,
+                "patient" to PatientList.profilePatient!!.mail
+                )
+        val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
+                com.android.volley.Response.Listener<JSONObject> { response ->
+                    // Display the first 500 characters of the response string.
+                    fetchComplete()
+                },
+                com.android.volley.Response.ErrorListener { error->
+                    Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                })
+        queue.add(jRequest)
+    }
+
+    /**
+     * Verify the measurment and save, in case of bad results you could retry measure.
+     */
     override fun onClick(view: View?) {
         when(view!!.id){
             R.id.button_accept -> {
-                if(!(edit_diastolic_manual.text.isEmpty() || edit_systolic_manual.text.isEmpty() || selectedArm == "" || edit_initials.text.isEmpty())) {
-                    val resultIntent = Intent()
+                if(!(edit_diastolic_manual.text.isEmpty() || edit_systolic_manual.text.isEmpty() || selectedArm == "")) {
 
-                    val fecha = toString(Calendar.getInstance().time)
-
-                    val image = toByteArray(time_graph.takeSnapshot())
+                    fecha = toString(Calendar.getInstance().time)
 
                     val instanceDatabase = MedicionDatabase.getInstance(this)
+                    var graphString = ""
+                    for(i in 0..entries.size-1){
+                        graphString += "${entries[i].x};${entries[i].y}"
+                    }
+
+                    Log.d("asd","asd")
+
                     ioThread {
                         instanceDatabase.medicionDao().insertarMedicion(Medicion(systolicRes.toInt().toString(),
                                 diastolicRes.toInt().toString(),
@@ -104,12 +158,17 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener {
                                 fecha,
                                 validateCheck,
                                 selectedArm,
-                                image,
-                                edit_initials.text.toString()))
+                                graphString,
+                                graphString))
                     }
-
-                    setResult(Activity.RESULT_OK)
-                    finish()
+                    if (NetworkConnection.isNetworkConnected(this)) {
+                        postPressure(graphString)
+                    } else {
+                        // alerta usando la librería de ANKO
+                        alert(message = resources.getString(R.string.internet_no_desc), title = resources.getString(R.string.internet_no_title)) {
+                            okButton {  }
+                        }.show()
+                    }
                 }
                 else {
                     Toast.makeText(this, "Llena todos los campos manuales", Toast.LENGTH_LONG).show()
@@ -163,27 +222,43 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener {
         val diastolic = arrayOfNulls<Double>(data.size) //Arreglo para guardar los cálculos de presión diastólica
 
         //Cálculo de primeros valores filtrados de mmHg
-        fixed[0] = data[0].mmHg
-        fixed[1] = data[1].mmHg
+        fixed[0] = data[0].mmHg.toDouble()
+        fixed[1] = data[1].mmHg.toDouble()
 
-        mSeries.appendData(DataPoint(data[0].timer, fixed[0]!!), false, 1000)
-        mSeries.appendData(DataPoint(data[1].timer, fixed[1]!!), false, 1000)
+
+        entries.add(Entry(data[0].timer, fixed[0]!!.toFloat()))
+        entries.add(Entry(data[1].timer, fixed[1]!!.toFloat()))
+        val dataSet = LineDataSet(entries, resources.getString(R.string.chart_label)) // add entries to dataset
+        dataSet.color = resources.getColor(R.color.colorButton)
+        dataSet.setDrawCircles(false)
+
+        val lineData = LineData(dataSet)
+        chart.data = lineData
+        chart.notifyDataSetChanged() // let the chart know it's data changed
+        chart.invalidate() // refresh chart
 
 
         //Primer recorrido
         for(i in 2 until data.size){
             //Cálculo de los datos de presión filtrados
             if(abs(data[i].mmHg - data[i-1].mmHg) < 4){
-                fixed[i] = data[i].mmHg
+                fixed[i] = data[i].mmHg.toDouble()
             } else if(abs(data[i-1].mmHg - data[i-2].mmHg) >= 4){
-                fixed[i] = data[i].mmHg
+                fixed[i] = data[i].mmHg.toDouble()
             } else if(i+1>=data.size){
-                fixed[i] = (data[i-1].mmHg + data[i+1].mmHg) / 2
+                fixed[i] = (data[i-1].mmHg.toDouble() + data[i+1].mmHg) / 2
             }else{
-                fixed[i] = data[i-1].mmHg
+                fixed[i] = data[i-1].mmHg.toDouble()
             }
 
-            mSeries.appendData(DataPoint(data[i].timer, fixed[i]!!), false, 1000)
+            entries.add(Entry(data[i].timer, fixed[i]!!.toFloat()))
+            val dataSet = LineDataSet(entries, resources.getString(R.string.chart_label)) // add entries to dataset
+            dataSet.color = resources.getColor(R.color.colorButton)
+            dataSet.setDrawCircles(false)
+            val lineData = LineData(dataSet)
+            chart.data = lineData
+            chart.notifyDataSetChanged() // let the chart know it's data changed
+            chart.invalidate() // refresh chart
 
             //Cálculo de mmHg mov (hasta n-5)
             fixedSum += fixed[i]!!
@@ -332,16 +407,14 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun verifyNurseMode () {
-        var examplePrefs = getSharedPreferences("Shared", 0)
-        var shared = examplePrefs.getBoolean("Shared", false)
+        val examplePrefs = getSharedPreferences("Shared", 0)
+        val shared = examplePrefs.getBoolean("Shared", false)
         if (shared) {
             tv_device_results_title.visibility = View.GONE
             tv_device_results.visibility = View.GONE
             tv_device_diastolic.visibility = View.GONE
             tv_device_systolic.visibility = View.GONE
             divider2.visibility = View.GONE
-            divider3.visibility = View.GONE
-            time_graph.visibility = View.INVISIBLE
         }
     }
 
@@ -350,9 +423,8 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener {
         return format.format(date)
     }
 
-    fun toByteArray(bitmap: Bitmap): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream)
-        return outputStream.toByteArray()
+    override fun fetchComplete() {
+        setResult(Activity.RESULT_OK)
+        finish()
     }
 }

@@ -39,12 +39,6 @@ class ConfigurationActivity : AppCompatActivity() {
             editor.putBoolean("Shared", nurseChecked)
             editor.commit()
         }
-
-        if (PatientList.bluetoothHelper!!.isEnabled() && PatientList.bluetoothHelper!!.isDeviceConnected()) {
-            textView4.text = "El dispositivo de onda de pulso se encuentra conectado."
-        } else {
-            textView4.text = "El dispositivo de onda de pulso no se encuentra conectado."
-        }
     }
 
     // Handles clicking the back button

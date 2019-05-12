@@ -18,32 +18,54 @@
 package mx.itesm.proyectofinal
 
 import android.app.Activity
-import android.graphics.Color
-import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
-import com.jjoe64.graphview.series.DataPoint
-import com.jjoe64.graphview.series.LineGraphSeries
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.experimental.launch
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Color
+import android.os.Bundle
+import android.os.Handler
 import android.os.Parcelable
+import android.support.v7.app.AppCompatActivity
+import android.util.Log
+import android.view.View
+import android.widget.Toast
+import de.nitri.gauge.Gauge
 import kotlinx.android.parcel.Parcelize
+import mx.itesm.proyectofinal.BLE.BLEConnectionManager
+import mx.itesm.proyectofinal.BLE.BLEConstants
+import mx.itesm.proyectofinal.BLE.BleDeviceData
+import java.util.*
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.LineData
+
 
 /*
  * MainActivity class declares the activity and inflates the view.
  */
 class MainActivity : AppCompatActivity() {
-    private var mSeries: LineGraphSeries<DataPoint?> = LineGraphSeries()
-    var mBluetoothHelper: BluetoothHelper? = PatientList.bluetoothHelper
-    //var dataList: MutableList<Data> = mutableListOf<Data>()
-    //var started = false
+
+    private val TAG: String = "MainA"
+
+    private var mDevice: BleDeviceData = BleDeviceData("","")
+
+    var dataList: MutableList<Data> = mutableListOf()
+
+    private lateinit var chart: LineChart
+    private lateinit var gauge: Gauge
+
+    var entries: MutableList<Entry> = mutableListOf()
+
+    private var started: Boolean = false
+    private var valid: Boolean = false
+    private var stringData: String = ""
+    private var time: Double = 0.0
+
 
     companion object {
         const val LIST_ID = "DataList"
-    }
-
-    init {
-
     }
 
     // Creates the view and initialized the run method for the connected thread.
@@ -51,85 +73,254 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mSeries.color = Color.parseColor("#E84A48")
-        graph.addSeries(mSeries)
-        graph.title = "Fotopletismografía"
-        graph.viewport.isXAxisBoundsManual = true
-        graph.viewport.setMinX(0.toDouble())
-        graph.viewport.setMaxX(40.toDouble())
 
-        mBluetoothHelper?.started = true
+        val extras = intent.extras?:return
+        mDevice = extras.getParcelable(PatientList.BLUETOOTH_ADDRESS)!!
+
+        registerServiceReceiver()
+        BLEConnectionManager.initBLEService(this@MainActivity)
+        connectDevice(mDevice.mDeviceAddress)
 
         launchRefreshUiCheck()
+
+        gauge = findViewById(R.id.gauge)
+        chart = findViewById(R.id.chart)
+        chart.setNoDataText(resources.getString(R.string.chart_nodata))
+        chart.setNoDataTextColor(Color.GRAY)
+        chart.setDrawBorders(false)
+        chart.isKeepPositionOnRotation = true
+        chart.description.isEnabled = false
     }
 
-    // Handles redirecting and passing information to the ResultsActivity
+
+    /**
+     * Disconnect the bluetooth helper classes before finishing
+     */
+    override fun onDestroy() {
+        unRegisterServiceReceiver()
+        BLEConnectionManager.unBindBLEService(this@MainActivity)
+        BLEConnectionManager.disconnect()
+        super.onDestroy()
+    }
+
+    /**
+     *  Handles redirecting and passing information to the ResultsActivity
+     */
     fun goToDetail() {
-        //mBluetoothHelper?.closeConnection()
         val intent = Intent(this, ResultsActivity::class.java)
         var max = 0
-        var actualData = ArrayList<Data>()
-        var holder = mBluetoothHelper?.dataList!!
+        val actualData = ArrayList<Data>()
+        var holder = dataList
         for (i in 0 until holder.size-1) {
             if (holder[max].mmHg < holder[i].mmHg)
                 max = i
         }
-        var firstTime = holder[max].timer
+        val firstTime = holder[max].timer
         for (i in max until holder.size-1) {
             holder[i].timer -= firstTime
             actualData.add(holder[i])
         }
         if(actualData.size > 20) {
-            mBluetoothHelper?.dataList!!.clear()
-            mSeries.resetData(arrayOfNulls(0))
             intent.putExtra(LIST_ID, actualData)
             startActivityForResult(intent, 2)
         }
     }
 
+    /**
+     * Refresh the UI for a new take of pressure
+     */
     fun launchRefreshUiCheck() {
-        launch {
-            var dataSize = 0
-            var counter = 0.0
-            while (mBluetoothHelper?.started!!) {
-                var list = mBluetoothHelper?.dataList!!
-                if (dataSize != list.size) {
-                    dataSize = list.size
-                    runOnUiThread {
-                        if (list.size > 0) {
-                            // speedMeter.setSpeed(list[dataSize-1].mmHg.toFloat())
-                            mSeries.appendData(DataPoint(counter, list[dataSize-1].pulse), false, 1000)
-                            counter++
-                        }
-                    }
-                    if (list != null && list.size > 0 && list.size > 250 && list.last().mmHg >= 0 && list.last().mmHg <= 25)
-                        mBluetoothHelper?.started = false
-                }
-            }
-            goToDetail()
-        }
+        registerServiceReceiver()
+        entries.clear()
+        chart.invalidate() // refresh chart
+        chart.clear() // clear chart
+        started = false
+        valid = false
+        stringData = ""
+        time = 0.0
+
     }
 
     // Handles receiving information from the ResultsActivity and either restarting measurement or
     // redirecting to PatientsList
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            mBluetoothHelper?.started = true
             launchRefreshUiCheck()
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
             setResult(Activity.RESULT_OK)
             finish()
         } else if (requestCode == 2 && resultCode == Activity.RESULT_CANCELED) {
-            mBluetoothHelper?.started = true
             launchRefreshUiCheck()
         }
+    }
+
+     /**
+     * Connect the application with BLE device with selected device address.
+     */
+    private fun connectDevice(mDeviceAddress : String) {
+        Handler().postDelayed({
+            if (BLEConnectionManager.connect(mDeviceAddress)) {
+                Toast.makeText(this@MainActivity, "DEVICE CONNECTED", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this@MainActivity, "DEVICE CONNECTION FAILED", Toast.LENGTH_LONG).show()
+                setResult(Activity.RESULT_CANCELED)
+            }
+        }, 500)
+    }
+
+    /**
+     * Register GATT update receiver
+     */
+    private fun registerServiceReceiver() {
+        this.registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
+    }
+
+    private val mGattUpdateReceiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            when {
+                BLEConstants.ACTION_GATT_CONNECTED.equals(action) -> {
+                    Log.i(TAG, "ACTION_GATT_CONNECTED ")
+                    BLEConnectionManager.findBLEGattService(this@MainActivity)
+                }
+                BLEConstants.ACTION_GATT_DISCONNECTED.equals(action) -> {
+                    Log.i(TAG, "ACTION_GATT_DISCONNECTED ")
+                    BLEConnectionManager.disconnect()
+                    setResult(Activity.RESULT_CANCELED)
+                    finish()
+                }
+                BLEConstants.ACTION_GATT_SERVICES_DISCOVERED.equals(action) -> {
+                    Log.i(TAG, "ACTION_GATT_SERVICES_DISCOVERED ")
+                    try {
+                        Thread.sleep(500)
+                    } catch (e: InterruptedException) {
+                        e.printStackTrace()
+                    }
+                    BLEConnectionManager.findBLEGattService(this@MainActivity)
+                }
+                BLEConstants.ACTION_DATA_AVAILABLE.equals(action) -> {
+                    /**
+                     * It's a notification from the external BLE device.
+                     * From an intent we get the data and UUID of the service that send it.
+                     */
+                    val data = intent.getStringExtra(BLEConstants.EXTRA_DATA)
+                    val uuId = intent.getStringExtra(BLEConstants.EXTRA_UUID)
+
+                    if(data != null ){
+                        // If it already found an end of a dataset to begin recording datasets
+                        if(started){
+                            val endDataSet = stringData.indexOf("\r\n") // Find for end of dataset
+                            time += 5
+                            if(endDataSet != -1){
+                                val dataString = stringData.substring(0,endDataSet) // Get dataset
+                                var values: List<Float>
+                                // Try and catch, inscae it's not possible to convert to Float
+                                try{
+                                    values = dataString.split(';').map { it.toFloat() }
+                                    if(values.size == 3){ // Check if it fulfills being the three values
+                                        /**
+                                         * Since we have the three values for this dataset,
+                                         * it's time to assign them to the different representations or
+                                         * structures that we would be using.
+                                         */
+                                        Log.d("DATA", values.toString())
+                                        // Add to the list of every dataset
+                                        dataList.add(Data(values[0], values[1], values[2]))
+                                        // Move gauge
+                                        gauge.moveToValue(values[1])
+                                        if(valid){
+                                            // Add to graph
+                                            // Turn your data into Entry objects
+                                            entries.add(Entry(time.toFloat(), values[1]))
+                                            val dataSet = LineDataSet(entries, resources.getString(R.string.chart_label)) // add entries to dataset
+                                            dataSet.color = resources.getColor(R.color.colorButton)
+                                            dataSet.setDrawCircles(false)
+
+                                            val lineData = LineData(dataSet)
+                                            chart.data = lineData
+                                            chart.notifyDataSetChanged() // let the chart know it's data changed
+                                            chart.invalidate() // refresh chart
+                                            if(values[1] < 30){
+                                                valid = false
+                                                unRegisterServiceReceiver()
+                                                goToDetail()
+                                            }
+                                        }
+                                        else if(values[1] > 140){
+                                            valid = true
+                                        }
+                                    }
+                                }
+                                catch (e: NumberFormatException){
+                                    null
+                                }
+
+                                stringData = stringData.substring(endDataSet+2) // Remove dataset used
+                            }
+                            stringData += data // Add new data to the string
+                        }
+                        // Haven't found the end of a dataset, keep looking for it
+                        else{
+                            val endDataSet = data.indexOf("\r\n") // Find for end of dataset
+                            if(endDataSet != -1){
+                                val endChar = data.indexOf("\n") // Find for end of dataset
+                                stringData += data.substring(endChar+1)
+                                started = true // Found the end, next dataset most likely to be complete
+                            }
+                        }
+                    }
+                }
+                BLEConstants.ACTION_DATA_WRITTEN.equals(action) -> {
+                    val data = intent.getStringExtra(BLEConstants.EXTRA_DATA)
+                    Log.i(TAG, "ACTION_DATA_WRITTEN ")
+                }
+            }
+        }
+    }
+
+    /**
+     * Intent filter for Handling BLEService broadcast.
+     */
+    private fun makeGattUpdateIntentFilter(): IntentFilter {
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(BLEConstants.ACTION_GATT_CONNECTED)
+        intentFilter.addAction(BLEConstants.ACTION_GATT_DISCONNECTED)
+        intentFilter.addAction(BLEConstants.ACTION_GATT_SERVICES_DISCOVERED)
+        intentFilter.addAction(BLEConstants.ACTION_DATA_AVAILABLE)
+        intentFilter.addAction(BLEConstants.ACTION_DATA_WRITTEN)
+
+        return intentFilter
+    }
+
+    /**
+     * Unregister GATT update receiver
+     */
+    private fun unRegisterServiceReceiver() {
+        try {
+            this.unregisterReceiver(mGattUpdateReceiver)
+        } catch (e: Exception) {
+            //May get an exception while user denies the permission and user exists the app
+            Log.e(TAG, e.message)
+        }
+    }
+
+    private fun writeMissedConnection() {
+        BLEConnectionManager.writeMissedConnection("A")
+    }
+
+    // Handles clicking the back button
+    override fun onBackPressed() {
+        unRegisterServiceReceiver()
+        BLEConnectionManager.disconnect()
+        setResult(Activity.RESULT_CANCELED)
+        finish()
     }
 }
 
 // Data class. An ArrayList of this type is sent to ResultsActivity
 @Parcelize
-data class Data(var timer: Double, var mmHg: Double, var pulse: Double) : Parcelable
+data class Data(var timer: Float, var mmHg: Float, var pulse: Float) : Parcelable
 
 

@@ -1,81 +1,55 @@
-/*
-    Copyright (C) 2018 - ITESM
-
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 package mx.itesm.proyectofinal
 
 import Database.MedicionDatabase
-import Database.ioThread
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_configuration.*
 import kotlinx.android.synthetic.main.activity_perfil.*
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.runOnUiThread
-import org.jetbrains.anko.toast
-import org.jetbrains.anko.uiThread
 import androidmads.library.qrgenearator.QRGContents
 import androidmads.library.qrgenearator.QRGEncoder
 import com.google.zxing.WriterException
-import android.R.attr.bitmap
-import android.support.v4.app.FragmentActivity
 import android.util.Log
-import android.R.attr.y
-import android.R.attr.x
 import android.content.Context
-import android.content.Intent
 import android.graphics.Point
-import android.view.Display
 import android.view.WindowManager
-
-
-
-
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import org.json.JSONObject
 
 
 // Configuration activity declaration and view inflation
 class PerfilActivity : AppCompatActivity() {
     lateinit var instanceDatabase: MedicionDatabase
+    lateinit var profile: signInActivity.Companion.Profile
 
 
     // Creates the activity and inflates the view
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
+        val queue = Volley.newRequestQueue(this)
         val extras = intent.extras?: return
         this.title = "Perfil"
-        val nombre = extras.getString(PatientList.ACCOUNT_NAME)
-        val email = extras.getString(PatientList.ACCOUNT_MAIL)
-        perfil_nombre.text = nombre
-        instanceDatabase = MedicionDatabase.getInstance(this)
-        ioThread {
-            val paciente = instanceDatabase.pacienteDao().cargarPacientePorEmail(email)
-            runOnUiThread {
-                if(paciente != null){
-                    perfil_genero.text = paciente.sexP
-                    perfil_edad.text = paciente.ageP.toString()
-                }
-                else
+        profile = extras.getParcelable(PatientList.ACCOUNT)!!
+        perfil_nombre.text = profile.name
+        val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
+        val jRequest =  StringRequest(Request.Method.GET, url,
+                Response.Listener<String> { response ->
+                    // Display the first 500 characters of the response string.
+                    var json = JSONObject(response)
+                    perfil_genero.text = json.get("sex").toString()
+                    perfil_edad.text = json.get("age").toString()
+                },
+                Response.ErrorListener { error->
                     Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
-            }
-        }
-        createQRCode(email)
-
+                })
+        jRequest.tag = "Load"
+        queue.add(jRequest)
+        createQRCode(profile.mail)
     }
 
     fun createQRCode(email:String){

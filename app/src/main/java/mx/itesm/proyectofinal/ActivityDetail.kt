@@ -24,73 +24,74 @@ import android.app.Activity
 import android.arch.lifecycle.LiveData
 import android.content.Intent
 import android.arch.lifecycle.Observer
-import android.graphics.BitmapFactory
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import kotlinx.android.synthetic.main.activity_detail.*
 import mx.itesm.proyectofinal.PatientList.Companion.DEL
 import mx.itesm.proyectofinal.PatientList.Companion.DELETE_ID
 
 class ActivityDetail : AppCompatActivity() {
 
-    lateinit var instanceDatabase: MedicionDatabase
     var idExtra: Int = 0
-    lateinit var measurementObj: LiveData<Medicion>
+    lateinit var measurementObj: Medicion
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
 
-        instanceDatabase = MedicionDatabase.getInstance(this)
 
-
+        // Get the data from the pressure taken
+        // And put it on the corresponding view
         val extras = intent.extras?:return
-        idExtra = extras.getInt(PatientList.PATIENT_KEY)
+        measurementObj = extras.getParcelable(PatientList.PATIENT_KEY)!!
+        title = measurementObj?.iniciales
 
-        ioThread {
-           measurementObj = instanceDatabase.medicionDao().cargarMedicionId(idExtra)
+        checkbox_verified.isChecked = measurementObj.verificado!!
 
-            measurementObj.observe(this, object: Observer<Medicion>{
-                override fun onChanged(measurementObj: Medicion?) {
-                    title = measurementObj?.iniciales
-
-                    checkbox_verified.isChecked = measurementObj?.verificado!!
-
-                    val deviceResults = measurementObj.appSistolica + " / " + measurementObj.appDiastolica
-                    tv_device_results.text = deviceResults
-
-                    val manualResults = measurementObj.manSistolica + " / " + measurementObj.manDiastolica
-                    tv_manual_results.text = manualResults
-
-                    if(measurementObj.brazo == "I"){
-                        tv_arm_results.text = "Izquierdo"
-                    }
-                    else if(measurementObj.brazo == "D") {
-                        tv_arm_results.text = "Derecho"
-                    }
-
-                    if(measurementObj.grafica != null) {
-                        val image = BitmapFactory.decodeByteArray(measurementObj.grafica, 0, measurementObj.grafica!!.size)
-                        image_graph.setImageBitmap(image)
-                    }
-                }
-            })
+        val manualResults = measurementObj.manSistolica + " / " + measurementObj.manDiastolica
+        tv_manual_results.text = manualResults
+        if(measurementObj.brazo == "I"){
+            tv_arm_results.text = "Izquierdo"
         }
-
+        else if(measurementObj.brazo == "D") {
+            tv_arm_results.text = "Derecho"
+        }
+        if(measurementObj.grafica != null) {
+            val values = measurementObj.grafica!!.split(';')
+            val entries: MutableList<Entry> = mutableListOf()
+            var time: Float = 0F
+            for (x in 1 until values.size-1){
+                // The data saved has two '.', so we are taking care of it by only taking the first
+                // portion of the data
+                val bueno = values[x].split('.')
+                entries.add(Entry(time, bueno[0].toFloat()))
+                time += 6
+            }
+            val dataSet = LineDataSet(entries, resources.getString(R.string.chart_label)) // add entries to dataset
+            dataSet.color = resources.getColor(R.color.colorButton)
+            dataSet.setDrawCircles(false)
+            val lineData = LineData(dataSet)
+            chart.data = lineData
+            chart.notifyDataSetChanged() // let the chart know it's data changed
+            chart.invalidate() // refresh chart
+        }
         checkbox_verified.setOnCheckedChangeListener { buttonView, isChecked ->
             ioThread {
-                instanceDatabase.medicionDao().updateMedicion(idExtra, isChecked)
+                //this.instanceDatabase.medicionDao().updateMedicion(idExtra, isChecked)
+
             }
         }
-
     }
 
-    /*
- * Inflates FAB button
- */
+    /**
+     * Inflates FAB button
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_detail, menu)
         return true
@@ -112,7 +113,6 @@ class ActivityDetail : AppCompatActivity() {
                 data.putExtra(DEL, true )
                 setResult(Activity.RESULT_OK, data)
 
-                measurementObj.removeObservers(this)
                 finish()
                 true
             }
@@ -128,14 +128,14 @@ class ActivityDetail : AppCompatActivity() {
 
     fun sendMail () {
         ioThread {
-            val measure = instanceDatabase.medicionDao().cargarMedicionPorId(idExtra)
+            val measure = measurementObj
             val i = Intent(Intent.ACTION_SEND)
             i.type = "message/rfc822"
             //Cliente ingresa correo de remitente
             i.putExtra(Intent.EXTRA_EMAIL, arrayOf(""))
             i.putExtra(Intent.EXTRA_SUBJECT, "Medicion: " + measure.fecha + " " + measure.iniciales)
 
-            var text = "Fecha: " + measure.fecha +
+            val text = "Fecha: " + measure.fecha +
                     "\nIniciales: " + measure.iniciales +
                     "\nBrazo: " + measure.brazo +
                     "\n\nApp: \n" + "    Sistolica: " + measure.appSistolica + "\n   Diastolica: " + measure.appDiastolica +
@@ -148,7 +148,6 @@ class ActivityDetail : AppCompatActivity() {
                 Toast.makeText(applicationContext, "There are no email clients installed.", Toast.LENGTH_SHORT)
                         .show()
             }
-
         }
     }
 

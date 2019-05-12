@@ -5,7 +5,7 @@
 
 
     <solid
-        android:color="#fd1240" >
+        android:color="@color/colorPrimary" >
     </solid>
 
     <corners

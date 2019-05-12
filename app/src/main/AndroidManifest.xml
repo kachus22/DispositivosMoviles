@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="mx.itesm.proyectofinal">
+    <!--
+     Declare this required feature if you want to make the app available to BLE-capable
+    devices only.  If you want to make your app available to devices that don't support BLE,
+    you should omit this in the manifest.  Instead, determine BLE capability by using
+    PackageManager.hasSystemFeature(FEATURE_BLUETOOTH_LE)
+    -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true"/>
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -8,10 +22,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
-
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="true"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -20,6 +32,7 @@
         android:roundIcon="@drawable/logo_icono"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".SplashActivity"
@@ -30,21 +43,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".signInActivity">
+        <activity android:name=".ElegirTipo"
+            android:launchMode="singleTask"/>
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-
-
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
+        <activity android:name=".signInActivity"
+            android:launchMode="singleTask">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ElegirTipo" />
         </activity>
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait" />
+        <activity android:name=".DeviceScanActivity"
+            android:launchMode="singleTask"/>
         <activity
             android:name=".ResultsActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ConfigurationActivity"
             android:screenOrientation="portrait">
@@ -65,17 +80,18 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".PatientList"
-            android:label="@string/title_activity_patient_list"/>
+            android:label="@string/title_activity_patient_list"
+            android:launchMode="singleTask"/>
 
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-
-        <activity android:name=".ElegirTipo" />
         <activity
             android:name=".Clinic_list"
             android:label="@string/title_activity_clinic_list"
-            ></activity>
+            android:launchMode="singleTask"
+            />
+        <service android:name=".BLE.BLEService"/>
     </application>
 
 </manifest>

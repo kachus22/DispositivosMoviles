@@ -193,50 +193,19 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/radiogroup_arm" />
 
-            <TextView
-                android:id="@+id/tv_initials_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/text_results_title_initials"
-                android:textColor="@color/colorButton"
-                android:textSize="24sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/divider5" />
-
-            <EditText
-                android:id="@+id/edit_initials"
-                android:layout_width="98dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:inputType="textCapCharacters"
-                android:textSize="20sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_initials_title" />
-
-            <View
-                android:id="@+id/divider3"
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
                 android:layout_width="0dp"
-                android:layout_height="3dp"
+                android:layout_height="240dp"
+                android:layout_marginBottom="32dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginStart="32dp"
                 android:layout_marginTop="16dp"
-                android:background="?android:attr/listDivider"
+                app:layout_constraintTop_toBottomOf="@id/divider5"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edit_initials" />
-
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/time_graph"
-                android:layout_width="0dp"
-                android:layout_height="230dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/divider3" />
+                app:layout_goneMarginEnd="12dp"/>
 
         </android.support.constraint.ConstraintLayout>
 

@@ -36,6 +36,37 @@
     <string name="paciente">Paciente</string>
     <string name="tipoCuenta">Elige tipo de cuenta</string>
 
+    <string name="bluetooth_le_not_supported">El dispositivo no soporta LE</string>
+
+    <string name="location_permission_disabled">Por favor dar permiso para encontrar el dispositivo</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancelar</string>
+    <string name="bluetooth_permission_not_granted">Permiso de bluetooth denegado</string>
+    <string name="location_permission_not_granted">Permiso de ubicación denegado</string>
+    <string name="bluetooth_permission_granted">Bluetooth activado</string>
+    <string name="location_permission_granted">Localización activada</string>
+
+    <string name="pressure_del">Presión borrada</string>
+    <string name="btn_scan">Scan</string>
+    <string name="no_device_found">No se encontro el dispositivo</string>
+
+    <string name="bluetooth_scan_start">Buscar</string>
+    <string name="bluetooth_scan_stop">Parar</string>
+    <string name="bluetooth_device_status">Status:</string>
+    <string name="bluetooth_device_address">MAC:</string>
+    <string name="bluetooth_device_connected">Dispositivo seleccionado</string>
+    <string name="bluetooth_device_disconnected_ok">Toma guardada</string>
+    <string name="bluetooth_device_disconnected_cancel">Dispositivo desconectado</string>
+
+
+    <string name="chart_nodata">No hay datos significativos</string>
+    <string name="chart_label">Presión arterial</string>
+
+    <string name="type_patient">Perfil personal</string>
+    <string name="type_clinic">Mis Pacientes</string>
+
+    <string name="internet_no_title">No estás conectado</string>
+    <string name="internet_no_desc">Por favor conectate a una red para iniciar sesión</string>
     <string name="escanear_qr">Escanear QR de paciente</string>
 
 </resources>

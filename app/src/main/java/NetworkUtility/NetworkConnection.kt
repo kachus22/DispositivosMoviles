@@ -10,7 +10,17 @@ class NetworkConnection {
 
 
     companion object {
-        const val BASE_URL = "https://pacific-tundra-10593.herokuapp.com"
+        const val BASE_URL = "https://heart-app-tec.herokuapp.com"
+
+        fun buildStringAccount(): String = "$BASE_URL/account/"
+
+        fun buildStringClinicPatients(clinic: String): String = "$BASE_URL/clinics/$clinic/"
+
+        fun buildStringPatients(mail: String): String = "$BASE_URL/patients/$mail"
+
+        fun buildStringPatientsPressures(patient: String): String = "$BASE_URL/patients/$patient/pressures"
+
+        fun buildStringPressures(): String = "$BASE_URL/pressures/"
 
         fun buildUrlClinics(): URL =
                 URL("$BASE_URL/clinics/?format=json")

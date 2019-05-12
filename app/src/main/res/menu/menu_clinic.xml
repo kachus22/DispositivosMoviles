@@ -5,4 +5,10 @@
         android:id="@+id/action_sacnQR"
         android:title="@string/escanear_qr"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:title="@string/settings_logout"
+        app:showAsAction="never" />
+
 </menu>

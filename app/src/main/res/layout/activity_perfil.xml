@@ -17,7 +17,7 @@
             android:id="@+id/perfil_nombre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hector Leon"
+            android:text=""
             android:textSize="24sp"
             android:textColor="@android:color/black"
             />
@@ -25,7 +25,7 @@
             android:id="@+id/perfil_edad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="20"
+            android:text=""
             android:textSize="18sp"
             android:textColor="@android:color/black"
             />
@@ -33,7 +33,7 @@
             android:id="@+id/perfil_genero"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hombre"
+            android:text=""
             android:textSize="18sp"
             android:textColor="@android:color/black"
             />
