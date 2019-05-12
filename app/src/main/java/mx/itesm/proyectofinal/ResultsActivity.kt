@@ -21,9 +21,7 @@ import Database.Medicion
 import Database.MedicionDatabase
 import Database.ioThread
 import NetworkUtility.NetworkConnection
-import NetworkUtility.OkHttpRequest
 import android.app.Activity
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
@@ -32,27 +30,23 @@ import android.util.Log
 import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import kotlinx.android.synthetic.main.activity_results.*
 import me.rohanjahagirdar.outofeden.Utils.FetchCompleteListener
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Response
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.okButton
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.*
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 /*
  * Resulsts activtiy. Creates the activity and inflates the view.
@@ -76,6 +70,8 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     var validateCheck: Boolean = false
     var selectedArm: String = ""
     var fecha: String? = ""
+    lateinit var queue: RequestQueue
+
 
     private lateinit var chart: LineChart
     var entries: MutableList<Entry> = mutableListOf()
@@ -85,6 +81,7 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         setContentView(R.layout.activity_results)
 
         this.title = "Resultados"
+        queue = Volley.newRequestQueue(this)
 
         val extras = intent.extras?:return
 
@@ -109,8 +106,6 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     }
 
     fun postPressure(){
-        var client = OkHttpClient()
-        var request= OkHttpRequest(client)
         val url = NetworkConnection.buildStringPressures()
         val sdf = SimpleDateFormat("yyyy-MM-dd")
         val currentDate = sdf.format(Date())
@@ -125,26 +120,15 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
                 "arm" to selectedArm,
                 "patient" to PatientList.profilePatient!!.mail
                 )
-
-        request.POST(url, map, object: Callback {
-            override fun onResponse(call: Call?, response: Response) {
-                println(response.toString())
-                val responseData = response.body()?.string()
-                runOnUiThread{
-                    try {
-                        var json = JSONObject(responseData)
-                        detailsJSON = json
-                        fetchComplete()
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call?, e: IOException?) {
-                Log.d("FAILURE", "REQUEST FAILURE")
-            }
-        })
+        val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
+                com.android.volley.Response.Listener<JSONObject> { response ->
+                    // Display the first 500 characters of the response string.
+                    fetchComplete()
+                },
+                com.android.volley.Response.ErrorListener { error->
+                    Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                })
+        queue.add(jRequest)
     }
 
     override fun onClick(view: View?) {

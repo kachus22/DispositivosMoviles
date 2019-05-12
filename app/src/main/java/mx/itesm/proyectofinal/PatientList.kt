@@ -17,9 +17,8 @@
 
 package mx.itesm.proyectofinal
 
-import Database.Medicion
-import Database.MedicionDatabase
-import Database.ioThread
+import Database.*
+import NetworkUtility.NetworkConnection.Companion.buildStringPatientsPressures
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
@@ -39,6 +38,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.android.synthetic.main.activity_patient_list.*
 import org.jetbrains.anko.doAsync
@@ -76,7 +80,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
     lateinit var sharedPreference:SharedPreference
     lateinit var account: GoogleSignInAccount
     // Database variable initialization
-    lateinit var instanceDatabase: MedicionDatabase
+    lateinit var queue: RequestQueue
 
     // The RecyclerView adapter declaration
     val adapter = MeditionAdapter(this, this)
@@ -92,11 +96,17 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         super.onCreate(savedInstanceState)
         sharedPreference=SharedPreference(this)
         this.title = "Registros"
+        queue = Volley.newRequestQueue(this)
         setContentView(R.layout.activity_patient_list)
         val extras = intent.extras?: return
-
-        profile = extras.getParcelable(ACCOUNT)!!
-        profilePatient = profile
+        if(ACTIV == "clinic") {
+            val perf = extras.getParcelable<Patient>(ACCOUNT)
+            this.profile = signInActivity.Companion.Profile(perf.mailC!!, perf.FNameP!!, ""!!)
+        }
+        else{
+            profile = extras.getParcelable(ACCOUNT)!!
+            profilePatient = profile
+        }
 
         val type = extras.getInt(ACCOUNT_TYPE)
 
@@ -113,20 +123,9 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         val layoutManager = LinearLayoutManager(this)
         lista_pacientes.layoutManager = layoutManager
 
-        this.instanceDatabase = MedicionDatabase.getInstance(this)
         lista_pacientes.adapter = adapter
 
-         // Local Database load
-        ioThread {
-            val measureNum = instanceDatabase.medicionDao().getAnyMedicion(profile.mail)
-//            insertMeasurements(this)
-            if(measureNum == 0){
-                insertMeasurements(this)
-            } else{
-                loadMediciones()
-            }
-        }
-
+        loadMediciones()
         floatingActionButton.setOnClickListener { onPress() }
         checkLocationPermission()
     }
@@ -209,7 +208,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
                 if (resultCode == Activity.RESULT_OK) {
                     if (data?.getBooleanExtra(DEL, false) == true) {
                         ioThread {
-                            instanceDatabase.medicionDao().borrarMedicion(data.getIntExtra(DELETE_ID, 0))
+                            //instanceDatabase.medicionDao().borrarMedicion(data.getIntExtra(DELETE_ID, 0))
                         }
                         Toast.makeText(this, R.string.pressure_del,
                                 Toast.LENGTH_LONG).show()
@@ -224,30 +223,34 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
     // Custom item click listener for each measurement
     override fun onCustomItemClick(medicion: Medicion) {
         val intent = Intent(this, ActivityDetail::class.java)
-
-        intent.putExtra(PATIENT_KEY, medicion._id)
+        intent.putExtra(PATIENT_KEY, medicion)
         startActivityForResult(intent, LOAD_MEASURE)
     }
 
-    // Loads measurements from database
+    // Loads measurements from api
     private fun loadMediciones() {
-        val measurements = this.instanceDatabase.medicionDao().cargarMeciciones(profile.mail)
-
-        measurements.observe(this, object: Observer<List<Medicion>> {
-            override fun onChanged(t: List<Medicion>?) {
-                adapter.setMedicion(t!!)
-                if(adapter.itemCount == 0){
-                    tv_vacia_med.visibility = View.VISIBLE
-                }else{
-                    tv_vacia_med.visibility = View.GONE
-                }
-                lista_pacientes.adapter = adapter
-                lista_pacientes.adapter?.notifyDataSetChanged()
-            }
-        })
+        val url = buildStringPatientsPressures(profile.mail)
+        val jRequest =  StringRequest(Request.Method.GET, url,
+                Response.Listener<String> { response ->
+                    // Display the first 500 characters of the response string.
+                    val t = parseJsonMeds(response)
+                    adapter.setMedicion(t)
+                    if(adapter.itemCount == 0){
+                        tv_vacia_med.visibility = View.VISIBLE
+                    }else{
+                        tv_vacia_med.visibility = View.GONE
+                    }
+                    lista_pacientes.adapter = adapter
+                    lista_pacientes.adapter?.notifyDataSetChanged()
+                },
+                Response.ErrorListener {error->
+                    Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
+                })
+        jRequest.tag = "Load"
+        queue.add(jRequest)
     }
 
-    // Inserts a new measurements to the list in DB
+    /* Inserts a new measurements to the list in DB
     fun insertMeasurements(context: Context){
         var measurements:List<Medicion>
         doAsync {
@@ -262,7 +265,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         ///instanceDatabase.medicionDao().insertartListaMediciones(measurements)
         ///loadMediciones()
         //}
-    }
+    }*/
 
     // Handles clicking options item
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

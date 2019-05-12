@@ -26,18 +26,17 @@ class ElegirTipo : AppCompatActivity() {
         button_paciente.setOnClickListener { signInPaciente() }
         button_clinica.setOnClickListener { signInClinica() }
     }
+
     fun signInClinica(){
         val StartAppIntent = Intent(this,signInActivity::class.java)
         StartAppIntent.putExtra(TYPE,"clinica")
         startActivity(StartAppIntent)
-        finish()
     }
 
     fun signInPaciente(){
         val StartAppIntent = Intent(this,signInActivity::class.java)
         StartAppIntent.putExtra(TYPE,"paciente")
         startActivity(StartAppIntent)
-        finish()
     }
 
     override fun onBackPressed() {

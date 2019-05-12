@@ -2,8 +2,6 @@
 package mx.itesm.proyectofinal
 
 import Database.MedicionDatabase
-import Database.ioThread
-import NetworkUtility.OkHttpRequest
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
@@ -12,25 +10,15 @@ import kotlinx.android.synthetic.main.activity_perfil.*
 import androidmads.library.qrgenearator.QRGContents
 import androidmads.library.qrgenearator.QRGEncoder
 import com.google.zxing.WriterException
-import android.R.attr.bitmap
-import android.support.v4.app.FragmentActivity
 import android.util.Log
-import android.R.attr.y
-import android.R.attr.x
 import android.content.Context
-import android.content.Intent
 import android.graphics.Point
-import android.view.Display
-import android.view.View
 import android.view.WindowManager
-import kotlinx.android.synthetic.main.activity_clinic_list.*
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Response
-import org.json.JSONException
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import org.json.JSONObject
-import java.io.IOException
 
 
 // Configuration activity declaration and view inflation
@@ -43,40 +31,25 @@ class PerfilActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
+        val queue = Volley.newRequestQueue(this)
         val extras = intent.extras?: return
         this.title = "Perfil"
         profile = extras.getParcelable(PatientList.ACCOUNT)!!
         perfil_nombre.text = profile.name
-        instanceDatabase = MedicionDatabase.getInstance(this)
-        ioThread {
-            var client = OkHttpClient()
-            var request= OkHttpRequest(client)
-            val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
-            request.GET(url, object: Callback {
-                override fun onResponse(call: Call?, response: Response) {
-                    println(response.toString())
-                    val responseData = response.body()?.string()
-                    runOnUiThread {
-                        try {
-                            var json = JSONObject(responseData)
-                            perfil_genero.text = json.get("sex").toString()
-                            perfil_edad.text = json.get("age").toString()
-
-                        } catch (e: JSONException) {
-                            Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
-                            e.printStackTrace()
-                        }
-                    }
-
-                }
-
-                override fun onFailure(call: Call?, e: IOException?) {
-                    Log.d("FAILURE", "REQUEST FAILURE")
-                }
-            })
-        }
+        val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
+        val jRequest =  StringRequest(Request.Method.GET, url,
+                Response.Listener<String> { response ->
+                    // Display the first 500 characters of the response string.
+                    var json = JSONObject(response)
+                    perfil_genero.text = json.get("sex").toString()
+                    perfil_edad.text = json.get("age").toString()
+                },
+                Response.ErrorListener { error->
+                    Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
+                })
+        jRequest.tag = "Load"
+        queue.add(jRequest)
         createQRCode(profile.mail)
-
     }
 
     fun createQRCode(email:String){

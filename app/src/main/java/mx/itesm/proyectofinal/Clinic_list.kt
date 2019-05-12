@@ -3,42 +3,33 @@ package mx.itesm.proyectofinal
 import Database.Medicion
 import Database.MedicionDatabase
 import Database.Patient
-import Database.ioThread
-import NetworkUtility.NetworkConnection.Companion.buildStringPatients
-import NetworkUtility.OkHttpRequest
 import android.app.AlertDialog
-import android.arch.lifecycle.Observer
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import com.google.zxing.integration.android.IntentIntegrator
-import android.support.v4.app.ActivityCompat
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
-import com.google.android.gms.vision.barcode.Barcode
-import com.google.android.gms.vision.barcode.BarcodeDetector
+import com.android.volley.toolbox.Volley
 import kotlinx.android.synthetic.main.activity_clinic_list.*
-import mx.itesm.proyectofinal.R.id.action_logout
 import mx.itesm.proyectofinal.Utils.CustomItemClickListener2
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Response
 import org.jetbrains.anko.doAsync
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.util.jar.Manifest
+import NetworkUtility.NetworkConnection
+import com.android.volley.RequestQueue
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
+
 
 class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
@@ -52,6 +43,8 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     // Database variable initialization
     lateinit var instanceDatabase: MedicionDatabase
     lateinit var profile: signInActivity.Companion.Profile
+    lateinit var queue: RequestQueue
+
 
     // The RecyclerView adapter declaration
     val adapter = PatientAdapter(this, this)
@@ -60,6 +53,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         super.onCreate(savedInstanceState)
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_clinic_list)
+        queue = Volley.newRequestQueue(this)
         val extras = intent.extras?: return
         profile = extras.getParcelable(PatientList.ACCOUNT)!!
 
@@ -85,35 +79,25 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
     // Loads measurements from database
     private fun loadPacientes() {
-        val client = OkHttpClient()
-        val request= OkHttpRequest(client)
-        val url = buildStringPatients(profile.mail)
-        request.GET(url, object: Callback {
-            override fun onResponse(call: Call?, response: Response) {
-                val responseData = response.body()?.string()
-                runOnUiThread {
-                    try {
-                        val t = parseJsonPats(responseData, profile.mail)
-                        println(t)
-                        adapter.setPatient(t)
-                        if (adapter.itemCount == 0) {
-                            tv_vacia.visibility = View.VISIBLE
-                        } else {
-                            tv_vacia.visibility = View.GONE
-                        }
-                        lista_clinica.adapter = adapter
-                        lista_clinica.adapter?.notifyDataSetChanged()
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
+        val url = "https://heart-app-tec.herokuapp.com/clinics/"+ profile.mail
+        val jRequest =  StringRequest(Request.Method.GET, url,
+                Response.Listener<String> { response ->
+                    // Display the first 500 characters of the response string.
+                    val t = parseJsonPats(response, profile.mail)
+                    adapter.setPatient(t!!)
+                    if (adapter.itemCount == 0) {
+                        tv_vacia.visibility = View.VISIBLE
+                    } else {
+                        tv_vacia.visibility = View.GONE
                     }
-                }
-
-            }
-
-            override fun onFailure(call: Call?, e: IOException?) {
-                Log.d("FAILURE", "REQUEST FAILURE")
-            }
-        })
+                    lista_clinica.adapter = adapter
+                    lista_clinica.adapter?.notifyDataSetChanged()
+                },
+                Response.ErrorListener {error->
+                    Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
+                })
+        jRequest.tag = "Load"
+        queue.add(jRequest)
     }
     fun parseJsonPats(jsonString: String?, clinicPat : String): MutableList<Patient>{
         var patients : MutableList<Patient> = mutableListOf()
@@ -162,7 +146,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         //startActivityForResult(intent, 3)
         val startAppIntent = Intent(this,PatientList::class.java)
         PatientList.ACTIV = "clinic"
-        startAppIntent.putExtra(PatientList.ACCOUNT, profile)
+        startAppIntent.putExtra(PatientList.ACCOUNT, patient)
         startAppIntent.putExtra(PatientList.ACCOUNT_TYPE, 0)
         startActivity(startAppIntent)
     }
@@ -215,28 +199,18 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
             else {
                 // If QRCode contains data.
                 val email = result.contents
-                var client = OkHttpClient()
-                var request= OkHttpRequest(client)
-                var url = "https://heart-app-tec.herokuapp.com/patients/"+ email
-                val map: HashMap<String, Any> = hashMapOf("clinic" to profile.mail, "age" to 77, "sex" to 'M')
-                println(map)
-
-                request.POST(url, map, object: Callback {
-                    override fun onResponse(call: Call?, response: Response) {
-                        println(response.toString())
-                        val responseData = response.body()?.string()
-                        runOnUiThread{
-                            try {
-                                loadPacientes()
-                            } catch (e: JSONException) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }
-                    override fun onFailure(call: Call?, e: IOException?) {
-                        Log.d("FAILURE", "REQUEST FAILURE")
-                    }
-                })
+                val url = NetworkConnection.buildStringPatients(email)
+                val map: HashMap<String, Any> = hashMapOf("clinic" to profile.mail, "sex" to "M", "age" to 12)
+                println(JSONObject(map))
+                val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
+                        Response.Listener<JSONObject> { response ->
+                            // Display the first 500 characters of the response string.
+                            loadPacientes()
+                        },
+                        Response.ErrorListener {error->
+                            Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                        })
+                queue.add(jRequest)
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
