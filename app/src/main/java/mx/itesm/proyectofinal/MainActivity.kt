@@ -47,7 +47,7 @@ import com.github.mikephil.charting.data.LineData
  */
 class MainActivity : AppCompatActivity() {
 
-    private val TAG: String = "uuidMain"
+    private val TAG: String = "MainA"
 
     private var mDevice: BleDeviceData = BleDeviceData("","")
 
@@ -68,10 +68,6 @@ class MainActivity : AppCompatActivity() {
         const val LIST_ID = "DataList"
     }
 
-    init {
-
-    }
-
     // Creates the view and initialized the run method for the connected thread.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,10 +81,8 @@ class MainActivity : AppCompatActivity() {
         BLEConnectionManager.initBLEService(this@MainActivity)
         connectDevice(mDevice.mDeviceAddress)
 
-//        launchRefreshUiCheck()
+        launchRefreshUiCheck()
 
-        val buttonScan: View = findViewById(R.id.button)
-        buttonScan.setOnClickListener { onClick() }
         gauge = findViewById(R.id.gauge)
         chart = findViewById(R.id.chart)
         chart.setNoDataText(resources.getString(R.string.chart_nodata))
@@ -98,13 +92,10 @@ class MainActivity : AppCompatActivity() {
         chart.description.isEnabled = false
     }
 
-    fun onClick(){
-//        unRegisterServiceReceiver()
-//        BLEConnectionManager.disconnect()
-        goToDetail()
-//        writeMissedConnection()
-    }
 
+    /**
+     * Disconnect the bluetooth helper classes before finishing
+     */
     override fun onDestroy() {
         unRegisterServiceReceiver()
         BLEConnectionManager.unBindBLEService(this@MainActivity)
@@ -112,7 +103,9 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    // Handles redirecting and passing information to the ResultsActivity
+    /**
+     *  Handles redirecting and passing information to the ResultsActivity
+     */
     fun goToDetail() {
         val intent = Intent(this, ResultsActivity::class.java)
         var max = 0
@@ -128,18 +121,19 @@ class MainActivity : AppCompatActivity() {
             actualData.add(holder[i])
         }
         if(actualData.size > 20) {
-//            mBluetoothHelper?.dataList!!.clear()
             intent.putExtra(LIST_ID, actualData)
             startActivityForResult(intent, 2)
         }
     }
 
+    /**
+     * Refresh the UI for a new take of pressure
+     */
     fun launchRefreshUiCheck() {
         registerServiceReceiver()
         entries.clear()
         chart.invalidate() // refresh chart
         chart.clear() // clear chart
-
         started = false
         valid = false
         stringData = ""
@@ -152,13 +146,11 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-//            mBluetoothHelper?.started = true
             launchRefreshUiCheck()
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
             setResult(Activity.RESULT_OK)
             finish()
         } else if (requestCode == 2 && resultCode == Activity.RESULT_CANCELED) {
-//            mBluetoothHelper?.started = true
             launchRefreshUiCheck()
         }
     }
@@ -168,7 +160,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun connectDevice(mDeviceAddress : String) {
         Handler().postDelayed({
-//            BLEConnectionManager.initBLEService(this@MainActivity)
             if (BLEConnectionManager.connect(mDeviceAddress)) {
                 Toast.makeText(this@MainActivity, "DEVICE CONNECTED", Toast.LENGTH_LONG).show()
             } else {
@@ -176,7 +167,6 @@ class MainActivity : AppCompatActivity() {
                 setResult(Activity.RESULT_CANCELED)
             }
         }, 500)
-//         100
     }
 
     /**
@@ -226,6 +216,7 @@ class MainActivity : AppCompatActivity() {
                             if(endDataSet != -1){
                                 val dataString = stringData.substring(0,endDataSet) // Get dataset
                                 var values: List<Float>
+                                // Try and catch, inscae it's not possible to convert to Float
                                 try{
                                     values = dataString.split(';').map { it.toFloat() }
                                     if(values.size == 3){ // Check if it fulfills being the three values

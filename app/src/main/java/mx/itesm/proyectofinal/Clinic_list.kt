@@ -33,12 +33,6 @@ import com.android.volley.toolbox.JsonObjectRequest
 
 class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
-    companion object {
-        val ACCOUNT_MAIL:String = "account_mail"
-        val ACCOUNT_NAME:String = "account_name"
-        val ACCOUNT_IMG:String = "account_img"
-    }
-
     lateinit var sharedPreference:SharedPreference
     // Database variable initialization
     lateinit var instanceDatabase: MedicionDatabase
@@ -69,7 +63,6 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         loadPacientes()
 
     }
-
 
     //Menu con la opcion de escanear el qr del paciente
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -168,14 +161,11 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                 builder.setPositiveButton("Cerrar sesión") { _, _ ->
                     signOut()
                 }
-
                 // Display a negative button on alert dialog
                 builder.setNegativeButton("Cancelar") { _, _ ->
                 }
-
                 // Finally, make the alert dialog using builder
                 val dialog: AlertDialog = builder.create()
-
                 // Display the alert dialog on app interface
                 dialog.show()
                 true
@@ -186,9 +176,13 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         }
     }
 
+    /**
+     * Starts QR intent
+     */
     private fun startQR() {
         IntentIntegrator(this).initiateScan()
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
 
@@ -220,7 +214,6 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     private fun signOut() {
         sharedPreference.clearSharedPreference()
         Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
-        //finish()
         PatientList.STATUS = "si"
         val StartAppIntent = Intent(this,ElegirTipo::class.java)
         startActivity(StartAppIntent)

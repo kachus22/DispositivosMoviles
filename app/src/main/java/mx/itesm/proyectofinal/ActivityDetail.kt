@@ -24,7 +24,6 @@ import android.app.Activity
 import android.arch.lifecycle.LiveData
 import android.content.Intent
 import android.arch.lifecycle.Observer
-import android.graphics.BitmapFactory
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -47,11 +46,13 @@ class ActivityDetail : AppCompatActivity() {
         setContentView(R.layout.activity_detail)
 
 
+        // Get the data from the pressure taken
+        // And put it on the corresponding view
         val extras = intent.extras?:return
-        measurementObj = extras.getParcelable<Medicion>(PatientList.PATIENT_KEY)!!
+        measurementObj = extras.getParcelable(PatientList.PATIENT_KEY)!!
         title = measurementObj?.iniciales
 
-        checkbox_verified.isChecked = measurementObj?.verificado!!
+        checkbox_verified.isChecked = measurementObj.verificado!!
 
         val manualResults = measurementObj.manSistolica + " / " + measurementObj.manDiastolica
         tv_manual_results.text = manualResults
@@ -62,11 +63,13 @@ class ActivityDetail : AppCompatActivity() {
             tv_arm_results.text = "Derecho"
         }
         if(measurementObj.grafica != null) {
-            var values = measurementObj.grafica!!.split(';')
-            var entries: MutableList<Entry> = mutableListOf()
+            val values = measurementObj.grafica!!.split(';')
+            val entries: MutableList<Entry> = mutableListOf()
             var time: Float = 0F
-            for (x in 1..values.size-1){
-                var bueno = values[x].split('.')
+            for (x in 1 until values.size-1){
+                // The data saved has two '.', so we are taking care of it by only taking the first
+                // portion of the data
+                val bueno = values[x].split('.')
                 entries.add(Entry(time, bueno[0].toFloat()))
                 time += 6
             }
@@ -85,9 +88,10 @@ class ActivityDetail : AppCompatActivity() {
             }
         }
     }
-    /*
- * Inflates FAB button
- */
+
+    /**
+     * Inflates FAB button
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_detail, menu)
         return true
@@ -131,7 +135,7 @@ class ActivityDetail : AppCompatActivity() {
             i.putExtra(Intent.EXTRA_EMAIL, arrayOf(""))
             i.putExtra(Intent.EXTRA_SUBJECT, "Medicion: " + measure.fecha + " " + measure.iniciales)
 
-            var text = "Fecha: " + measure.fecha +
+            val text = "Fecha: " + measure.fecha +
                     "\nIniciales: " + measure.iniciales +
                     "\nBrazo: " + measure.brazo +
                     "\n\nApp: \n" + "    Sistolica: " + measure.appSistolica + "\n   Diastolica: " + measure.appDiastolica +
@@ -144,7 +148,6 @@ class ActivityDetail : AppCompatActivity() {
                 Toast.makeText(applicationContext, "There are no email clients installed.", Toast.LENGTH_SHORT)
                         .show()
             }
-
         }
     }
 

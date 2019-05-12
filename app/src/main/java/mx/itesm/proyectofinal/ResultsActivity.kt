@@ -105,7 +105,7 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         }
     }
 
-    fun postPressure(){
+    fun postPressure(graphString: String){
         val url = NetworkConnection.buildStringPressures()
         val sdf = SimpleDateFormat("yyyy-MM-dd")
         val currentDate = sdf.format(Date())
@@ -118,6 +118,7 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
                 "manual_systolic" to edit_systolic_manual.text.toString(),
                 "manual_diastolic" to edit_diastolic_manual.text.toString(),
                 "arm" to selectedArm,
+                "data" to graphString,
                 "patient" to PatientList.profilePatient!!.mail
                 )
         val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
@@ -131,6 +132,9 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         queue.add(jRequest)
     }
 
+    /**
+     * Verify the measurment and save, in case of bad results you could retry measure.
+     */
     override fun onClick(view: View?) {
         when(view!!.id){
             R.id.button_accept -> {
@@ -140,7 +144,6 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
 
                     val instanceDatabase = MedicionDatabase.getInstance(this)
                     var graphString = ""
-                    Log.d("asd",entries.size.toString())
                     for(i in 0..entries.size-1){
                         graphString += "${entries[i].x};${entries[i].y}"
                     }
@@ -157,10 +160,9 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
                                 selectedArm,
                                 graphString,
                                 graphString))
-                        // TODO borrar iniciales de bd
                     }
                     if (NetworkConnection.isNetworkConnected(this)) {
-                        postPressure()
+                        postPressure(graphString)
                     } else {
                         // alerta usando la librería de ANKO
                         alert(message = resources.getString(R.string.internet_no_desc), title = resources.getString(R.string.internet_no_title)) {
@@ -223,8 +225,6 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
         fixed[0] = data[0].mmHg.toDouble()
         fixed[1] = data[1].mmHg.toDouble()
 
-//        mSeries.appendData(DataPoint(data[0].timer.toDouble(), fixed[0]!!), false, 1000)
-//        mSeries.appendData(DataPoint(data[1].timer.toDouble(), fixed[1]!!), false, 1000)
 
         entries.add(Entry(data[0].timer, fixed[0]!!.toFloat()))
         entries.add(Entry(data[1].timer, fixed[1]!!.toFloat()))
@@ -407,27 +407,20 @@ class ResultsActivity : AppCompatActivity(), View.OnClickListener, FetchComplete
     }
 
     private fun verifyNurseMode () {
-        var examplePrefs = getSharedPreferences("Shared", 0)
-        var shared = examplePrefs.getBoolean("Shared", false)
+        val examplePrefs = getSharedPreferences("Shared", 0)
+        val shared = examplePrefs.getBoolean("Shared", false)
         if (shared) {
             tv_device_results_title.visibility = View.GONE
             tv_device_results.visibility = View.GONE
             tv_device_diastolic.visibility = View.GONE
             tv_device_systolic.visibility = View.GONE
             divider2.visibility = View.GONE
-//            time_graph.visibility = View.INVISIBLE
         }
     }
 
     fun toString(date: Date?): String? {
         val format = SimpleDateFormat("dd/MM/yyyy")
         return format.format(date)
-    }
-
-    fun toByteArray(bitmap: Bitmap): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream)
-        return outputStream.toByteArray()
     }
 
     override fun fetchComplete() {
