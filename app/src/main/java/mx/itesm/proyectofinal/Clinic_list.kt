@@ -40,6 +40,8 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         val ACCOUNT_IMG:String = "account_img"
     }
 
+    var patients : MutableList<Patient> = mutableListOf()
+
     // Database variable initialization
     lateinit var instanceDatabase: MedicionDatabase
     lateinit var profile: Profile
@@ -106,7 +108,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         })
     }
     fun parseJsonPats(jsonString: String?, clinicPat : String): MutableList<Patient>{
-        var patients : MutableList<Patient> = mutableListOf()
+        //var patients : MutableList<Patient> = mutableListOf()
         var pat : Patient
         //Primero es array
         try {
@@ -119,13 +121,13 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                 val patSex = jsonPat.getString("sex")
 
                 pat = Patient(patMail,name,"",patAge,patSex,clinicPat)
-                patients.add(pat)
+                this.patients.add(pat)
             }
         }catch (e: JSONException) {
             e.printStackTrace()
             throw IOException("JSONException")
         }
-        return patients
+        return this.patients
     }
 
     // Inserts a new measurements to the list in DB
@@ -234,3 +236,4 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
 
 }
+
