@@ -104,18 +104,6 @@ class ActivityDetail : AppCompatActivity() {
                 this.onBackPressed()
                 return true
             }
-            R.id.action_delete ->{
-                val data = Intent()
-                data.putExtra(
-                        DELETE_ID,
-                        this.idExtra
-                )
-                data.putExtra(DEL, true )
-                setResult(Activity.RESULT_OK, data)
-
-                finish()
-                true
-            }
             R.id.action_sendEmail-> {
                 sendMail()
                 true
@@ -126,6 +114,9 @@ class ActivityDetail : AppCompatActivity() {
         }
     }
 
+    /**
+     * Function to handle the email or telegram measurement sharing, filling camps automatically
+     */
     fun sendMail () {
         ioThread {
             val measure = measurementObj

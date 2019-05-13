@@ -5,8 +5,4 @@
         android:id="@+id/action_sendEmail"
         android:title="@string/enviar_por_email"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_delete"
-        android:title="@string/eliminar"
-        app:showAsAction="never" />
 </menu>

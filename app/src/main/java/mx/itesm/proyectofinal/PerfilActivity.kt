@@ -96,9 +96,9 @@ class PerfilActivity : AppCompatActivity() {
     }
 
 
-    /*
+    /**
      * Creates QR code that contains the email
-     */
+     **/
     fun createQRCode(email:String){
         val manager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = manager.getDefaultDisplay()
@@ -118,9 +118,9 @@ class PerfilActivity : AppCompatActivity() {
         }
     }
 
-    /*
+    /**
      * Sends request to server to modify the data
-     */
+     **/
     fun sendRequest(){
         val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
         var se:String

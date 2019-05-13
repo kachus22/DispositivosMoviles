@@ -26,6 +26,9 @@ class PatientAdapter(var context: Context,
         return patViewHolder
     }
 
+    /**
+     * Get the size of the adapter
+     */
     override fun getItemCount(): Int {
         return numberOfItems
     }
@@ -34,6 +37,9 @@ class PatientAdapter(var context: Context,
         p0.bind(p1)
     }
 
+    /**
+     * Set every position the patient object from that position
+     */
     fun setPatient(patientsList: List<Patient>){
         patients = patientsList
         numberOfItems = patientsList.size
