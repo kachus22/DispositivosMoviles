@@ -246,7 +246,9 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
                     lista_pacientes.adapter?.notifyDataSetChanged()
                 },
                 Response.ErrorListener {error->
-                    Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
+                    tv_vacia_med.visibility = View.VISIBLE
+                    tv_vacia_med.text = "No hay conexión"
+                    Toast.makeText(applicationContext,"No se pudo cargar mediciones.", Toast.LENGTH_SHORT).show()
                 })
         jRequest.tag = "Load"
         queue.add(jRequest)
