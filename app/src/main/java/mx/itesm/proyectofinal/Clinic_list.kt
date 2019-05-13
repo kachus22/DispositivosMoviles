@@ -30,12 +30,19 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 
-
+/**
+ * Activity of Clinic list
+ * Main clinic activity where all the patients linked to the clinic profile that is executing the
+ * activity are shown.
+ *
+ */
 class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
+    //Values that are saved in the app as session variables
     lateinit var sharedPreference:SharedPreference
     // Database variable initialization
     lateinit var instanceDatabase: MedicionDatabase
+    //The profile object of the clinic
     lateinit var profile: signInActivity.Companion.Profile
     lateinit var queue: RequestQueue
 
@@ -43,6 +50,10 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     // The RecyclerView adapter declaration
     val adapter = PatientAdapter(this, this)
 
+    /**
+     * Function that executes every time the activity is created, setting the layout and getting the
+     * extra data from previous activities
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sharedPreference=SharedPreference(this)
@@ -64,13 +75,17 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
     }
 
-    //Menu con la opcion de escanear el qr del paciente
+    /**
+     * Create the options Menu, that includes the qr reader and the sign out options
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_clinic, menu)
         return true
     }
 
-    // Loads measurements from database
+    /**
+     * Loads measurements from database
+     */
     private fun loadPacientes() {
         val url = "https://heart-app-tec.herokuapp.com/clinics/"+ profile.mail
         val jRequest =  StringRequest(Request.Method.GET, url,
@@ -92,6 +107,10 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         jRequest.tag = "Load"
         queue.add(jRequest)
     }
+
+    /**
+     * Function to parse Json of patients that is received from the web service
+     */
     fun parseJsonPats(jsonString: String?, clinicPat : String): MutableList<Patient>{
         var patients : MutableList<Patient> = mutableListOf()
         var pat : Patient
@@ -116,23 +135,24 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     }
 
     // Inserts a new measurements to the list in DB
-    fun insertPacientes(context: Context){
+    /*fun insertPacientes(context: Context){
         var patients:List<Patient>
         doAsync {
             patients = Medicion.populatePatients(applicationContext, profile.mail)
             this@Clinic_list.instanceDatabase.pacienteDao().insertartListaPacientes(patients)
             loadPacientes()
         }
-        //ioThread {
-        /*
-        * Llenar lista con las mediciones del servicio web
-        * */
-        ///instanceDatabase.medicionDao().insertartListaMediciones(measurements)
-        ///loadMediciones()
-        //}
-    }
+        ioThread {
+        //Llenar lista con las mediciones del servicio web
+        //instanceDatabase.medicionDao().insertartListaMediciones(measurements)
+        //loadMediciones()
+        }
+    }*/
 
-    // Custom item click listener for each measurement
+    /**
+    ** Custom item click listener for each measurement
+     *
+     **/
     override fun onCustomItemClick(patient: Patient) {
         //val intent = Intent(this, ::class.java)
         //intent.putExtra(PatientList.PATIENT_KEY, patient._idP)
@@ -144,7 +164,9 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         startActivity(startAppIntent)
     }
 
-    // Handles clicking options item
+    /**
+     * Function to handle options menu item selection
+     */
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId){
             R.id.action_sacnQR ->{
@@ -183,6 +205,9 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         IntentIntegrator(this).initiateScan()
     }
 
+    /**
+     * Starts activity for pressure register
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
 
@@ -211,14 +236,25 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         }
     }
 
+    /**
+     * Function to sign out the google account in the app, cleaning all the session variables
+     * and going back to the type of account choosing activity
+     */
     private fun signOut() {
         sharedPreference.clearSharedPreference()
         Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
         PatientList.STATUS = "si"
+        val StartAppIntent = Intent(this,ElegirTipo::class.java)
+        startActivity(StartAppIntent)
         finish()
     }
 
+    //Value to check if double tapped the back button
     private var doubleBackToExitPressedOnce = false
+    /**
+     * Function to retain the user in the current activity if back pressed, but when double back
+     * pressed, we exit the app.
+     */
     override fun onBackPressed() {
         if (doubleBackToExitPressedOnce) {
             moveTaskToBack(true);

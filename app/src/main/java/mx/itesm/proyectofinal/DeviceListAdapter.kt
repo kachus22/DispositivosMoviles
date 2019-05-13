@@ -40,7 +40,7 @@ class DeviceListAdapter(private val context: Context,
     private var mAddresses: MutableSet<String> = mutableSetOf()
 
     fun addDevice(device: BleDeviceData) {
-        if (!mAddresses.contains(device.mDeviceAddress)) {
+        if (!mAddresses.contains(device.mDeviceAddress) && device.mDeviceName != "Unknown") {
             mAddresses.add(device.mDeviceAddress)
             mLeDevices.add(device)
         }
@@ -70,7 +70,6 @@ class DeviceListAdapter(private val context: Context,
 
         val bluetoothDeviceHolder: BluetoothDeviceViewHolder
         val rowView: View
-//        val bluetoothDevice: BluetoothDevice = getItem(position) as BluetoothDevice
         val bluetoothDevice: BleDeviceData = getItem(position) as BleDeviceData
 
         // General ListView optimization code.

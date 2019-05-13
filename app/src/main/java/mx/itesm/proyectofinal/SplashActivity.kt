@@ -17,7 +17,9 @@ class SplashActivity : AppCompatActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         setContentView(R.layout.activity_splash)
 
-        //4 segundos splash screen
+        /**
+         * Delayed splashscreen
+         */
         Handler().postDelayed({
             lateinit var startAppIntent:Intent
             val sharedPreference:SharedPreference=SharedPreference(this)
@@ -26,7 +28,6 @@ class SplashActivity : AppCompatActivity() {
                 startAppIntent = Intent(this@SplashActivity,Clinic_list::class.java)
                 startAppIntent.putExtra(PatientList.ACCOUNT, sharedPreference.getValueProfile("ACCOUNT"))
                 startActivity(startAppIntent)
-                //startActivity(Intent(this@SplashActivity, Clinic_list::class.java))
                 PatientList.ACTIV = "sign"
             }else{
                 if(sharedPreference.getValueString("TIPO_USUARIO") == "paciente"){
@@ -34,7 +35,6 @@ class SplashActivity : AppCompatActivity() {
                     startAppIntent = Intent(this@SplashActivity,PatientList::class.java)
                     startAppIntent.putExtra(PatientList.ACCOUNT, sharedPreference.getValueProfile("ACCOUNT"))
                     startActivity(startAppIntent)
-                    //startActivity(Intent(this@SplashActivity, PatientList::class.java))
                 }else{
                     Toast.makeText(this,"No se tiene nada iniciado", Toast.LENGTH_LONG)
                     startActivity(Intent(this@SplashActivity, ElegirTipo::class.java))

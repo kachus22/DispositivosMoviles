@@ -32,11 +32,9 @@ import org.json.JSONObject
 
 class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener, FetchCompleteListener {
 
-    private lateinit var detailsJSON: JSONObject
     lateinit var profile: Profile
     lateinit var tipo: String
     private val RC_SIGN_IN = 9001
-    private var mGoogleApiClient: GoogleApiClient? = null
     private var mGoogleSignInClient : GoogleSignInClient? = null
     lateinit var sharedPreference:SharedPreference
     lateinit var queue: RequestQueue
@@ -49,11 +47,10 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("Aaaaaa")
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_sign_in)
         queue = Volley.newRequestQueue(this)
-        //btnLogin = findViewById(R.id.btnLogin)
-        //btnLogout = findViewById(R.id.btnLogout)
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         val extras = intent.extras?: return
@@ -63,10 +60,6 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
                 .build()
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
-        /*mGoogleApiClient = GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build()*/
         btnLogin.setOnClickListener{ signin() }
     }
 
@@ -75,9 +68,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         PatientList.ACTIV = "sign"
         if(PatientList.STATUS == "si") {
             signOut()
-            val startAppIntent = Intent(this,ElegirTipo::class.java)
-            startActivity(startAppIntent)
-            finish()
+            PatientList.STATUS == "no"
         }else {
             val account = GoogleSignIn.getLastSignedInAccount(this)
             updateUILogged(account)
@@ -132,7 +123,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
             val name = account.displayName
             val imgUrl = account.photoUrl.toString()
             profile = Profile(mail!!, name!!, imgUrl)
-            checkUser(mail, name)
+            checkUser()
         }
     }
 
@@ -146,7 +137,11 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
-    fun checkUser(email: String, name: String){
+    /**
+     * Function to check if the user exists on the database.
+     * In case it doesn't it adds it.
+     */
+    fun checkUser(){
         val url = buildStringAccount()
         val map: HashMap<String, String> = hashMapOf("name" to profile.name, "email" to profile.mail)
         val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),

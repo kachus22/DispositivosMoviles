@@ -100,7 +100,11 @@ data class Patient(@ColumnInfo(name = "email") var mailC: String?,
     }
 }
 */
-
+/**
+ * Function that loads all the measurements of a given mail in the patientMail String
+ * creates the url and calls parseJsonMeds
+ * return the list of measurements loaded from the web service
+ */
 fun cargaMeds(patientMail: String) : MutableList<Medicion> {
     val url = NetworkConnection.buildUrlPressures(patientMail)
     var dataJson : String?
@@ -122,6 +126,11 @@ fun cargaMeds(patientMail: String) : MutableList<Medicion> {
         "age": 13,
         "sex": "F"
  */
+/**
+ * Function that loads all the patients of a given clinic mail in the clinicaMail String
+ * creates the url and calls parseJsonPats
+ * return the list of patients loaded from the web service
+ */
 fun cargaPatients(clinicaMail : String) : MutableList<Patient>{
     val urlP = NetworkConnection.buildUrlPatients(clinicaMail)
     var dataJsonP : String?
@@ -135,6 +144,10 @@ fun cargaPatients(clinicaMail : String) : MutableList<Patient>{
     return parseJsonPats(dataJsonP!!, clinicaMail)
 }
 
+/**
+ * This function handles the parsing of the json retrieved from the web service and transforms
+ * all that data to a list of parcelable measurement objects
+ */
 fun parseJsonMeds(jsonString: String): MutableList<Medicion>{
     var pressures : MutableList<Medicion> = mutableListOf()
     var press : Medicion
@@ -164,6 +177,10 @@ fun parseJsonMeds(jsonString: String): MutableList<Medicion>{
     return pressures
 }
 
+/**
+ * This function handles the parsing of the json retrieved from the web service and transforms
+ * all that data to a list of parcelable patient objects
+ */
 fun parseJsonPats(jsonString: String, clinicPat : String): MutableList<Patient>{
     var patients : MutableList<Patient> = mutableListOf()
     var pat : Patient
