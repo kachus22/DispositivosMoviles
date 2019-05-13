@@ -65,6 +65,8 @@
 
     <string name="type_patient">Mi Perfil</string>
     <string name="type_clinic">Presiones</string>
+    <string name="nombrePerfil">Nombre : </string>
+    <string name="edadPerfil">Edad       :</string>
 
     <string name="internet_no_title">No estás conectado</string>
     <string name="internet_no_desc">Por favor conectate a una red para iniciar sesión</string>
