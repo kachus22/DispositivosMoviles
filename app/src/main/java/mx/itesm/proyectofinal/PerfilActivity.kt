@@ -42,6 +42,7 @@ class PerfilActivity : AppCompatActivity() {
         setContentView(R.layout.activity_perfil)
         floatingActionButtonSave.show()
 
+
         queue = Volley.newRequestQueue(this)
 
         val extras = intent.extras?: return
@@ -71,13 +72,23 @@ class PerfilActivity : AppCompatActivity() {
         jRequest.tag = "Load"
         queue.add(jRequest)
 
-        but_H.setOnClickListener {
-            val check = findViewById<RadioButton>(R.id.but_M)
-            check.isChecked = false
+        //Si viene de la actividad clinica se deshabilitan
+        if(PatientList.ACTIV == "clinic"){
+            perfil_nombre.isEnabled = false
+            perfil_edad.isEnabled = false
+            but_H.isClickable = false
+            but_M.isClickable = false
+            floatingActionButtonSave.hide()
         }
-        but_M.setOnClickListener {
-            val check = findViewById<RadioButton>(R.id.but_H)
-            check.isChecked = false
+        else{
+            but_H.setOnClickListener {
+                val check = findViewById<RadioButton>(R.id.but_M)
+                check.isChecked = false
+            }
+            but_M.setOnClickListener {
+                val check = findViewById<RadioButton>(R.id.but_H)
+                check.isChecked = false
+            }
         }
 
         createQRCode(profile.mail)
@@ -129,7 +140,7 @@ class PerfilActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,"Datos guardados exitosamente.", Toast.LENGTH_SHORT).show()
                 },
                 Response.ErrorListener { error->
-                    Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext,"No se pudo guardar los datos.", Toast.LENGTH_SHORT).show()
                 })
 
         queue.add(jRequest)
