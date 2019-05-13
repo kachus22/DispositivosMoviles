@@ -81,8 +81,6 @@ class MainActivity : AppCompatActivity() {
         BLEConnectionManager.initBLEService(this@MainActivity)
         connectDevice(mDevice.mDeviceAddress)
 
-        launchRefreshUiCheck()
-
         gauge = findViewById(R.id.gauge)
         chart = findViewById(R.id.chart)
         chart.setNoDataText(resources.getString(R.string.chart_nodata))
@@ -90,6 +88,8 @@ class MainActivity : AppCompatActivity() {
         chart.setDrawBorders(false)
         chart.isKeepPositionOnRotation = true
         chart.description.isEnabled = false
+
+        launchRefreshUiCheck()
     }
 
 
@@ -138,7 +138,6 @@ class MainActivity : AppCompatActivity() {
         valid = false
         stringData = ""
         time = 0.0
-
     }
 
     // Handles receiving information from the ResultsActivity and either restarting measurement or

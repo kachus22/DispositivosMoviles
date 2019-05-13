@@ -84,7 +84,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         // Verify the action and get the query
         if (Intent.ACTION_SEARCH == intent.action) {
             intent.getStringExtra(SearchManager.QUERY)?.also { query ->
-                Log.d("asd",query.toString())
+                Log.d("asd",query)
                 Log.d("asd","asd")
             }
         }
