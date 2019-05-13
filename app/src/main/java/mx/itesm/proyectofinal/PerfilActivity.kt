@@ -43,11 +43,11 @@ class PerfilActivity : AppCompatActivity() {
         floatingActionButtonSave.show()
 
 
-        queue = Volley.newRequestQueue(this)
+        this.queue = Volley.newRequestQueue(this)
 
         val extras = intent.extras?: return
         this.title = "Perfil"
-        profile = extras.getParcelable(PatientList.ACCOUNT)!!
+        this.profile = extras.getParcelable(PatientList.ACCOUNT)!!
 
         perfil_nombre.setText(profile.name, TextView.BufferType.EDITABLE)
 
@@ -70,7 +70,7 @@ class PerfilActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
                 })
         jRequest.tag = "Load"
-        queue.add(jRequest)
+        this.queue.add(jRequest)
 
         //Si viene de la actividad clinica se deshabilitan
         if(PatientList.ACTIV == "clinic"){
@@ -91,7 +91,7 @@ class PerfilActivity : AppCompatActivity() {
             }
         }
 
-        createQRCode(profile.mail)
+        createQRCode(this.profile.mail)
         floatingActionButtonSave.setOnClickListener { sendRequest() }
     }
 
@@ -143,7 +143,7 @@ class PerfilActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,"No se pudo guardar los datos.", Toast.LENGTH_SHORT).show()
                 })
 
-        queue.add(jRequest)
+        this.queue.add(jRequest)
     }
 
     // Handles clicking the back button and edit profile button

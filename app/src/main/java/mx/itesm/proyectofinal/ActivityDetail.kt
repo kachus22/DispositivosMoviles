@@ -49,8 +49,8 @@ class ActivityDetail : AppCompatActivity() {
         // Get the data from the pressure taken
         // And put it on the corresponding view
         val extras = intent.extras?:return
-        measurementObj = extras.getParcelable(PatientList.PATIENT_KEY)!!
-        title = measurementObj?.iniciales
+        this.measurementObj = extras.getParcelable(PatientList.PATIENT_KEY)!!
+        this.title = measurementObj?.iniciales
 
         checkbox_verified.isChecked = measurementObj.verificado!!
 
@@ -114,9 +114,7 @@ class ActivityDetail : AppCompatActivity() {
         }
     }
 
-    /**
-     * Function to handle the email or telegram measurement sharing, filling camps automatically
-     */
+
     fun sendMail () {
         ioThread {
             val measure = measurementObj

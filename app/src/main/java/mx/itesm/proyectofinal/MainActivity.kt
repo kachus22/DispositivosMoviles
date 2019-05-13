@@ -131,13 +131,13 @@ class MainActivity : AppCompatActivity() {
      */
     fun launchRefreshUiCheck() {
         registerServiceReceiver()
-        entries.clear()
-        chart.invalidate() // refresh chart
-        chart.clear() // clear chart
-        started = false
-        valid = false
-        stringData = ""
-        time = 0.0
+        this.entries.clear()
+        this.chart.invalidate() // refresh chart
+        this.chart.clear() // clear chart
+        this.started = false
+        this.valid = false
+        this.stringData = ""
+        this.time = 0.0
 
     }
 
