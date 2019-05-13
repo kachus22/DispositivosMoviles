@@ -15,7 +15,7 @@ class PatientAdapter(var context: Context,
 
     lateinit var patient:Patient
     var numberOfItems = 0
-    var patients:List<Patient>? = null
+    var patients:MutableList<Patient>? = null
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, p1: Int): PatientViewHolder {
         val patViewHolder: PatientViewHolder
@@ -35,8 +35,14 @@ class PatientAdapter(var context: Context,
     }
 
     fun setPatient(patientsList: List<Patient>){
-        patients = patientsList
+        patients = patientsList as MutableList<Patient>
         numberOfItems = patientsList.size
+    }
+
+    fun updateData(newPatients: MutableList<Patient>){
+        patients?.clear()
+        patients?.addAll(newPatients)
+        notifyDataSetChanged() // hace el update del adaptador
     }
 
     inner class PatientViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
@@ -47,9 +53,9 @@ class PatientAdapter(var context: Context,
             patient = patients?.get(index)!!
 
             //itemView.card_name.text = medicion.iniciales
-            itemView.card_name.text = patient.FNameP+" "+patient.LNameP
-            itemView.card_age.text = "Edad: "+patient.ageP.toString()
-            itemView.card_gender.text = "Genero: "+patient.sexP
+            itemView.card_name.text = "${patient.FNameP} ${patient.LNameP}"
+            itemView.card_age.text = "Edad: ${patient.ageP.toString()}"
+            itemView.card_gender.text = "Genero: ${patient.sexP}"
         }
 
         override fun onClick(v: View?) {

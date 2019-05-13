@@ -70,4 +70,7 @@
     <string name="internet_no_desc">Por favor conectate a una red para iniciar sesión</string>
     <string name="escanear_qr">Escanear QR de paciente</string>
 
+    <string name="search_label">Buscar</string>
+    <string name="search_hint">Buscar paciente</string>
+
 </resources>

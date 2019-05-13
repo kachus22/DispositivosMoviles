@@ -24,6 +24,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import NetworkUtility.NetworkConnection
+import android.app.SearchManager
+import android.support.v7.widget.SearchView
+import android.util.Log
 import com.android.volley.RequestQueue
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -45,6 +48,11 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     //The profile object of the clinic
     lateinit var profile: signInActivity.Companion.Profile
     lateinit var queue: RequestQueue
+
+
+    private var searchView: SearchView? = null
+    lateinit var displayListPatients:MutableList<Patient>
+    lateinit var fullListPatients:MutableList<Patient>
 
 
     // The RecyclerView adapter declaration
@@ -73,15 +81,24 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
         loadPacientes()
 
+        // Verify the action and get the query
+        if (Intent.ACTION_SEARCH == intent.action) {
+            intent.getStringExtra(SearchManager.QUERY)?.also { query ->
+                Log.d("asd",query.toString())
+                Log.d("asd","asd")
+            }
+        }
+
+
     }
 
-    /**
-     * Create the options Menu, that includes the qr reader and the sign out options
-     */
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_clinic, menu)
-        return true
-    }
+//    /**
+//     * Create the options Menu, that includes the qr reader and the sign out options
+//     */
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.menu_clinic, menu)
+//        return true
+//    }
 
     /**
      * Loads measurements from database
@@ -91,8 +108,10 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         val jRequest =  StringRequest(Request.Method.GET, url,
                 Response.Listener<String> { response ->
                     // Display the first 500 characters of the response string.
-                    val t = parseJsonPats(response, profile.mail)
-                    adapter.setPatient(t!!)
+                    val patients = parseJsonPats(response, profile.mail)
+                    displayListPatients = patients
+                    fullListPatients = patients
+                    adapter.setPatient(patients)
                     if (adapter.itemCount == 0) {
                         tv_vacia.visibility = View.VISIBLE
                     } else {
@@ -219,7 +238,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                 // If QRCode contains data.
                 val email = result.contents
                 val url = NetworkConnection.buildStringPatients(email)
-                val map: HashMap<String, Any> = hashMapOf("clinic" to profile.mail, "sex" to "M", "age" to 12)
+                val map: HashMap<String, Any> = hashMapOf("clinic" to profile.mail, "sex" to "M", "age" to 100)
                 println(JSONObject(map))
                 val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
                         Response.Listener<JSONObject> { response ->
@@ -265,6 +284,71 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         Toast.makeText(this, "Presione atrás otra vez para salir", Toast.LENGTH_SHORT).show()
 
         Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
+    }
+
+
+    /**
+     * Handle queries from search. Update UI
+     */
+    private fun handleIntent(){
+        if (Intent.ACTION_SEARCH == intent.action) {
+            intent.getStringExtra(SearchManager.QUERY)?.also { query ->
+
+                displayListPatients = doMySearch(query).toMutableList()
+
+                adapter.updateData(displayListPatients)
+            }
+        }
+    }
+
+    /**
+     * Filter by query string
+     */
+    fun doMySearch(query:String) = displayListPatients.filter { patient -> patient.FNameP!!.contains(query,true) }
+
+    /**
+     * onCreateOptionsMenu. crea un menú de opciones
+     */
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+
+        menuInflater.inflate(R.menu.menu_clinic, menu)
+
+        val searchManager = getSystemService(SEARCH_SERVICE) as SearchManager
+
+        // associate search item to SearchView
+        searchView = menu.findItem(R.id.item_search).actionView as SearchView
+
+        // assigns a hint into SearchView query text
+        searchView?.queryHint = getString(R.string.search_hint)
+
+        // searchableInfo object represents the searchable configuration
+        searchView?.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+
+        searchView?.setOnQueryTextFocusChangeListener(object : View.OnFocusChangeListener {
+
+            override fun onFocusChange(view: View, queryTextFocused: Boolean) {
+                if (!queryTextFocused) {
+                    searchView?.setIconified(true)
+                }
+            }
+        })
+
+        searchView?.setOnCloseListener(object : SearchView.OnCloseListener {
+
+            override fun onClose(): Boolean {
+
+                displayListPatients = fullListPatients
+
+                searchView?.onActionViewCollapsed()
+                supportInvalidateOptionsMenu()
+
+                adapter.updateData(displayListPatients)
+
+                return false
+            }
+        })
+
+        return super.onCreateOptionsMenu(menu)
     }
 
 }
