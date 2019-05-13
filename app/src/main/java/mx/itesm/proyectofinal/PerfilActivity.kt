@@ -42,11 +42,12 @@ class PerfilActivity : AppCompatActivity() {
         setContentView(R.layout.activity_perfil)
         floatingActionButtonSave.show()
 
-        queue = Volley.newRequestQueue(this)
+
+        this.queue = Volley.newRequestQueue(this)
 
         val extras = intent.extras?: return
         this.title = "Perfil"
-        profile = extras.getParcelable(PatientList.ACCOUNT)!!
+        this.profile = extras.getParcelable(PatientList.ACCOUNT)!!
 
         perfil_nombre.setText(profile.name, TextView.BufferType.EDITABLE)
 
@@ -69,25 +70,35 @@ class PerfilActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
                 })
         jRequest.tag = "Load"
-        queue.add(jRequest)
+        this.queue.add(jRequest)
 
-        but_H.setOnClickListener {
-            val check = findViewById<RadioButton>(R.id.but_M)
-            check.isChecked = false
+        //Si viene de la actividad clinica se deshabilitan
+        if(PatientList.ACTIV == "clinic"){
+            perfil_nombre.isEnabled = false
+            perfil_edad.isEnabled = false
+            but_H.isClickable = false
+            but_M.isClickable = false
+            floatingActionButtonSave.hide()
         }
-        but_M.setOnClickListener {
-            val check = findViewById<RadioButton>(R.id.but_H)
-            check.isChecked = false
+        else{
+            but_H.setOnClickListener {
+                val check = findViewById<RadioButton>(R.id.but_M)
+                check.isChecked = false
+            }
+            but_M.setOnClickListener {
+                val check = findViewById<RadioButton>(R.id.but_H)
+                check.isChecked = false
+            }
         }
 
-        createQRCode(profile.mail)
+        createQRCode(this.profile.mail)
         floatingActionButtonSave.setOnClickListener { sendRequest() }
     }
 
 
-    /*
+    /**
      * Creates QR code that contains the email
-     */
+     **/
     fun createQRCode(email:String){
         val manager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = manager.getDefaultDisplay()
@@ -107,9 +118,9 @@ class PerfilActivity : AppCompatActivity() {
         }
     }
 
-    /*
+    /**
      * Sends request to server to modify the data
-     */
+     **/
     fun sendRequest(){
         val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
         var se:String
@@ -129,10 +140,10 @@ class PerfilActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,"Datos guardados exitosamente.", Toast.LENGTH_SHORT).show()
                 },
                 Response.ErrorListener { error->
-                    Toast.makeText(applicationContext,"No existes en la base de datos.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext,"No se pudo guardar los datos.", Toast.LENGTH_SHORT).show()
                 })
 
-        queue.add(jRequest)
+        this.queue.add(jRequest)
     }
 
     // Handles clicking the back button and edit profile button

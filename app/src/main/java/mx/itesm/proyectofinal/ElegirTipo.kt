@@ -30,6 +30,9 @@ class ElegirTipo : AppCompatActivity() {
         button_clinica.setOnClickListener { signInClinica() }
     }
 
+    /**
+     * Every time the activity starts
+     */
     override fun onStart() {
         super.onStart()
         button_paciente.setOnClickListener { signInPaciente() }

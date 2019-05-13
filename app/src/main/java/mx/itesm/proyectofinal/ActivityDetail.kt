@@ -49,8 +49,8 @@ class ActivityDetail : AppCompatActivity() {
         // Get the data from the pressure taken
         // And put it on the corresponding view
         val extras = intent.extras?:return
-        measurementObj = extras.getParcelable(PatientList.PATIENT_KEY)!!
-        title = measurementObj?.iniciales
+        this.measurementObj = extras.getParcelable(PatientList.PATIENT_KEY)!!
+        this.title = measurementObj?.iniciales
 
         checkbox_verified.isChecked = measurementObj.verificado!!
 
@@ -104,18 +104,6 @@ class ActivityDetail : AppCompatActivity() {
                 this.onBackPressed()
                 return true
             }
-            R.id.action_delete ->{
-                val data = Intent()
-                data.putExtra(
-                        DELETE_ID,
-                        this.idExtra
-                )
-                data.putExtra(DEL, true )
-                setResult(Activity.RESULT_OK, data)
-
-                finish()
-                true
-            }
             R.id.action_sendEmail-> {
                 sendMail()
                 true
@@ -125,6 +113,7 @@ class ActivityDetail : AppCompatActivity() {
             }
         }
     }
+
 
     fun sendMail () {
         ioThread {

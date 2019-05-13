@@ -43,6 +43,9 @@ class MeditionAdapter(var context: Context,
         return medicionViewHolder
     }
 
+    /**
+     * Get the size of the adapter
+     */
     override fun getItemCount(): Int {
         return numberOfItems
     }
@@ -51,11 +54,17 @@ class MeditionAdapter(var context: Context,
         p0.bind(p1)
     }
 
+    /**
+     * Set adapter fit to the list that is received
+     */
     fun setMedicion(medicionList: List<Medicion>){
         mediciones = medicionList
         numberOfItems = medicionList.size
     }
 
+    /**
+     * Fill every row of the adapter to the corresponding measurement
+     */
     inner class MeditionViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         init { itemView.setOnClickListener(this) }
