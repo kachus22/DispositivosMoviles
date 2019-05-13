@@ -51,7 +51,7 @@
     <string name="no_device_found">No se encontro el dispositivo</string>
 
     <string name="bluetooth_scan_start">Buscar</string>
-    <string name="bluetooth_scan_stop">Parar</string>
+    <string name="bluetooth_scan_searching">Buscando...</string>
     <string name="bluetooth_device_status">Status:</string>
     <string name="bluetooth_device_address">MAC:</string>
     <string name="bluetooth_device_connected">Dispositivo seleccionado</string>
@@ -62,8 +62,8 @@
     <string name="chart_nodata">No hay datos significativos</string>
     <string name="chart_label">Presión arterial</string>
 
-    <string name="type_patient">Perfil personal</string>
-    <string name="type_clinic">Mis Pacientes</string>
+    <string name="type_patient">Mi Perfil</string>
+    <string name="type_clinic">Presiones</string>
 
     <string name="internet_no_title">No estás conectado</string>
     <string name="internet_no_desc">Por favor conectate a una red para iniciar sesión</string>

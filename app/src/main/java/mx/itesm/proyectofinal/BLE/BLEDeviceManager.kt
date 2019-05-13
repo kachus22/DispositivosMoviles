@@ -32,14 +32,6 @@ object BLEDeviceManager {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
     }
 
-
-    // The thread that searches and extracts the socket through which communication with the
-    // bluetooth device is initiated.
-//    private var mConnectThread: ConnectThread?
-
-    // Thread that handles receiving information from external device.
-//    var mConnectedThread: ConnectedThread?
-
     /**
      * Initializes the connection threads and checks that bluetooth is enabled in the device.
      * Proceeds to call the bluetooth enabling intent or start the connection.
@@ -60,17 +52,6 @@ object BLEDeviceManager {
      */
     private fun createScanCallBackAboveLollipop() {
 
-//        scanCallback = object : ScanCallback() {
-//            override fun onScanResult(callbackType: Int, result: ScanResult) {
-//                Log.i("name", result?.device?.name.toString())
-//                Log.i("address", result?.device?.address.toString())
-////            // auto scroll for text view
-////            val scrollAmount = peripheralTextView.getLayout().getLineTop(peripheralTextView.getLineCount()) - peripheralTextView.getHeight()
-////            // if there is no need to scroll, scrollAmount will be <=0
-////            if (scrollAmount > 0)
-////                peripheralTextView.scrollTo(0, scrollAmount)
-//            }
-//        }*
         scanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 super.onScanResult(callbackType, result)
@@ -86,20 +67,6 @@ object BLEDeviceManager {
 
                     mOnDeviceScanListener?.onScanCompleted(data)
 
-
-//                    /**
-//                     * Save the Valid Device info into a list
-//                     * The List will display to the UI as a popup
-//                     * User has an option to select one BLE from the popup
-//                     * After selecting one BLE, the connection will establish and
-//                     * communication channel will create if its valid device.
-//                     */
-//
-//                    if (data.mDeviceName.contains("Invisa") || data.mDeviceName.
-//                                    contains("invisa")) {
-//                        mDeviceObject = data
-//                        stopScan(mDeviceObject)
-//                    }
                 }
             }
         }
@@ -123,19 +90,6 @@ object BLEDeviceManager {
                 val data = BleDeviceData(name, address)
 
                 mOnDeviceScanListener?.onScanCompleted(data)
-
-//                /**
-//                 * Save the Valid Device info into a list
-//                 * The List will display to the UI as a popup
-//                 * User has an option to select one BLE from the popup
-//                 * After selecting one BLE, the connection will establish and communication
-//                 * channel will create if its valid device.
-//                 */
-//
-//                if (data.mDeviceName.contains("Invisa") || data.mDeviceName.contains("invisa")) {
-//                    mDeviceObject = data
-//                    stopScan(mDeviceObject)
-//                }
 
             }
         }
@@ -184,13 +138,6 @@ object BLEDeviceManager {
         try {
             mIsContinuesScan = isContinuesScan
 
-//            if (mScanThread != null) {
-//                /**
-//                 * Already Running - No need to rescan
-//                 */
-//                return
-//            }
-
             mScanThread = Thread(mScanRunnable)
             mScanThread.start()
 
@@ -227,10 +174,7 @@ object BLEDeviceManager {
     }
 
     private fun scanFilters(): List<ScanFilter> {
-        val missedConnectionUUID = ""// Your UUID
-        val emergencyUDID = ""// Your UUID
-        val catchUDID = ""// Your UUID
-        val catchAllUDID = ""// Your UUID
+        val emergencyUDID = ""// Your UUID // TODO For future improvement, add UUID default
         val filter = ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(emergencyUDID)).build()
         val list = ArrayList<ScanFilter>(1)
         list.add(filter)
@@ -241,7 +185,6 @@ object BLEDeviceManager {
         return ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_BALANCED).build()
     }
 
-//    private
      fun stopScan(data: BleDeviceData?) {
         try {
             if (mScanThread != null) {

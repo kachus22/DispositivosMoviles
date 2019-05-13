@@ -27,6 +27,6 @@ class BLEConstants {
         const val CHARACTERISTIC_MISSED_CONNECTION = ""    //Special UUID for get the device Name
         const val CHARACTERISTIC_CATCH_ALL = ""    //Special UUID for get the device Name
         const val CHARACTERISTIC_CATCH = ""    //Special UUID for get the device Name
-        const val SCAN_PERIOD: Long = 10000     // Time in milliseconds
+        const val SCAN_PERIOD: Long = 8000     // Time in milliseconds
     }
 }

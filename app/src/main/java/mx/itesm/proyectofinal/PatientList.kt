@@ -151,7 +151,6 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
 
     // Starts the MainActivity, which starts measuring data from the bluetooth device.
     private fun onPress() {
-//        scanDevice(false)
         if (mDevice.mDeviceAddress == "") {
             val intent = Intent(this, DeviceScanActivity::class.java)
             startActivityForResult(intent, BLUETOOTH_DEVICE)
@@ -170,11 +169,9 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
                 if (resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, R.string.bluetooth_permission_granted,
                             Toast.LENGTH_LONG).show()
-//                    finish()
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     Toast.makeText(this, R.string.bluetooth_permission_not_granted,
                             Toast.LENGTH_LONG).show()
-//                    finish()
                 }
             }
             BLUETOOTH_DEVICE -> {
