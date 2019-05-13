@@ -47,6 +47,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("Aaaaaa")
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_sign_in)
         queue = Volley.newRequestQueue(this)
@@ -67,9 +68,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         PatientList.ACTIV = "sign"
         if(PatientList.STATUS == "si") {
             signOut()
-            val startAppIntent = Intent(this,ElegirTipo::class.java)
-            startActivity(startAppIntent)
-            finish()
+            PatientList.STATUS == "no"
         }else {
             val account = GoogleSignIn.getLastSignedInAccount(this)
             updateUILogged(account)
