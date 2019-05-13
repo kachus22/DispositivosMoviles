@@ -136,8 +136,10 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
 //        unRegisterServiceReceiver() TODO : check this
     }
 
-    /*
-     * Inflates FAB button
+    /**
+     * Function to handle options menu item selection
+     * checking the type of account that is in the activity, to decide whether dislaying or not
+     * the logout option
      */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if(ACTIV == "clinic"){
@@ -264,14 +266,11 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         //}
     }*/
 
-    // Handles clicking options item
+    /**
+     * Function to handle options menu item selection
+     */
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId){
-            R.id.action_settings ->{
-                val intent = Intent(this, ConfigurationActivity::class.java)
-                startActivity(intent)
-                true
-            }
             R.id.action_perfil ->{
                 val intent = Intent(this, PerfilActivity::class.java)
                 intent.putExtra(PatientList.ACCOUNT,profile)
@@ -410,6 +409,10 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         }
     }
 
+    /**
+     * Function to sign out the google account in the app, cleaning all the session variables
+     * and going back to the type of account choosing activity
+     */
     private fun signOut() {
         sharedPreference.clearSharedPreference()
         Toast.makeText(applicationContext,"Cerrar sesión.", Toast.LENGTH_SHORT).show()
@@ -420,6 +423,10 @@ class PatientList : AppCompatActivity(), CustomItemClickListener {
         finish()
     }
 
+    /**
+     * Function to retain the user in the current activity if back pressed, but checks type of user
+     * before, to decide whether exit app or go back
+     */
     private var doubleBackToExitPressedOnce = false
     override fun onBackPressed() {
         if(sharedPreference.getValueString("TIPO_USUARIO")=="clinica"){

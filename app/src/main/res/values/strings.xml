@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Proyecto Final</string>
+    <string name="app_name">Registro Presión arterial</string>
     <string name="text_results_title_device">Resultados del dispositivo</string>
     <string name="text_results_title_manual">Resultados manuales</string>
     <string name="text_results_title_arm">Brazo usado</string>
