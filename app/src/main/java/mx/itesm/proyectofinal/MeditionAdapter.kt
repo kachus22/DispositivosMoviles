@@ -63,7 +63,7 @@ class MeditionAdapter(var context: Context,
     }
 
     /**
-     * Fill every row of the adapter to the corresponding medition
+     * Fill every row of the adapter to the corresponding measurement
      */
     inner class MeditionViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 

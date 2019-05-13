@@ -45,6 +45,9 @@ class PatientAdapter(var context: Context,
         numberOfItems = patientsList.size
     }
 
+    /**
+     * Fill every row of the adapter to the corresponding patient
+     */
     inner class PatientViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         init { itemView.setOnClickListener(this) }
