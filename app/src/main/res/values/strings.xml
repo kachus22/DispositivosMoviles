@@ -13,7 +13,7 @@
     <string name="check_verify">Verificar medición</string>
     <string name="title_activity_patient_list">Registros</string>
     <string name="title_activity_clinic_list">Lista Pacientes</string>
-    <string name="enviar_por_email">Enviar por correo</string>
+    <string name="enviar_por_email">Compartir medición (Enviar)</string>
     <string name="eliminar">Eliminar medicion</string>
     <string name="manual">Manual</string>
     <string name="dispositivo">Dispositivo</string>
@@ -65,6 +65,8 @@
 
     <string name="type_patient">Mi Perfil</string>
     <string name="type_clinic">Presiones</string>
+    <string name="nombrePerfil">Nombre : </string>
+    <string name="edadPerfil">Edad       :</string>
 
     <string name="internet_no_title">No estás conectado</string>
     <string name="internet_no_desc">Por favor conectate a una red para iniciar sesión</string>
