@@ -47,9 +47,9 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         Log.d("CONNECTION_FAILED", "onConnectionFailed: $p0")
     }
 
+    // Creates the activity, and makes the request to get your account
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        println("Aaaaaa")
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_sign_in)
         queue = Volley.newRequestQueue(this)
@@ -71,6 +71,9 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         btnLogin.setOnClickListener{ signin() }
     }
 
+    /*
+     * When the activity starts it will check if you want to sign out or you are already signed in
+     */
     override fun onStart() {
         super.onStart()
         PatientList.ACTIV = "sign"
@@ -83,6 +86,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
+    // Signs you out of your account
     private fun signOut() {
         mGoogleSignInClient?.signOut()
                 ?.addOnCompleteListener(this) {
@@ -90,6 +94,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
                 }
     }
 
+    // Handles the result of signin() and calls updateui with your account
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
             val account = completedTask.getResult(ApiException::class.java)
@@ -101,6 +106,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
+    //Calls google api and signs you in
     fun signin(){
         if (NetworkConnection.isNetworkConnected(this)) {
             val signInIntent = mGoogleSignInClient?.signInIntent
@@ -113,6 +119,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
+    //Result for activity google signin client
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
@@ -124,6 +131,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
+    //Saves your account in a profile object
     fun updateUI(account: GoogleSignInAccount?){
         if(account!=null){
             setContentView(R.layout.activity_loading_acc)
@@ -135,6 +143,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
+    //Saves your account in a profile object when you are already logged in
     fun updateUILogged(account: GoogleSignInAccount?){
         if(account!=null){
             val mail = account.email
@@ -145,6 +154,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         }
     }
 
+    //Checks if the user exist in the service
     fun checkUser(email: String, name: String){
         val url = buildStringAccount()
         val map: HashMap<String, String> = hashMapOf("name" to profile.name, "email" to profile.mail)
@@ -159,6 +169,7 @@ class signInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         queue.add(jRequest)
     }
 
+    //Starts desired activity
     override fun fetchComplete() {
         lateinit var startAppIntent:Intent
         val TIPO_USUARIO = "TIPO_USUARIO"

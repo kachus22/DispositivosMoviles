@@ -24,6 +24,7 @@
     <string name="settings_profile">Ver Perfil</string>
     <string name="settings_text">Configuración</string>
     <string name="settings_logout">Cerrar Sesión</string>
+    <string name="editar_perfil">Editar Perfil</string>
 
     <string name="card_title1">Resultados calculados</string>
     <string name="card_title2">Resultados manuales</string>
