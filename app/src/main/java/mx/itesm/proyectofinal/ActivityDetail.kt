@@ -18,12 +18,10 @@
 package mx.itesm.proyectofinal
 
 import Database.Medicion
-import Database.MedicionDatabase
 import Database.ioThread
 import android.app.Activity
-import android.arch.lifecycle.LiveData
 import android.content.Intent
-import android.arch.lifecycle.Observer
+import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -44,6 +42,12 @@ class ActivityDetail : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
+
+        chart.setNoDataText(resources.getString(R.string.chart_nodata))
+        chart.setNoDataTextColor(Color.GRAY)
+        chart.setDrawBorders(false)
+        chart.isKeepPositionOnRotation = true
+        chart.description.isEnabled = false
 
 
         // Get the data from the pressure taken
