@@ -3,6 +3,7 @@ package mx.itesm.proyectofinal
 import Database.Medicion
 import Database.MedicionDatabase
 import Database.Patient
+import NetworkUtility.ConnectivityReceiver
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -24,6 +25,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import NetworkUtility.NetworkConnection
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.support.design.widget.Snackbar
 import com.android.volley.RequestQueue
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -36,8 +40,12 @@ import com.android.volley.toolbox.JsonObjectRequest
  * activity are shown.
  *
  */
-class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
+class Clinic_list : AppCompatActivity(), CustomItemClickListener2, ConnectivityReceiver.ConnectivityReceiverListener  {
 
+    //listener if the device is connected
+    private var hasConnection: Int = 0
+    //Bar to display if not connected
+    private var mSnackBar: Snackbar? = null
     //Values that are saved in the app as session variables
     lateinit var sharedPreference:SharedPreference
     // Database variable initialization
@@ -58,6 +66,8 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         super.onCreate(savedInstanceState)
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_clinic_list)
+        registerReceiver(ConnectivityReceiver(),
+                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         queue = Volley.newRequestQueue(this)
         val extras = intent.extras?: return
         profile = extras.getParcelable(PatientList.ACCOUNT)!!
@@ -102,7 +112,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                     lista_clinica.adapter?.notifyDataSetChanged()
                 },
                 Response.ErrorListener {error->
-                    Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
                 })
         jRequest.tag = "Load"
         queue.add(jRequest)
@@ -170,7 +180,11 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId){
             R.id.action_sacnQR ->{
-                startQR()
+                if(hasConnection==1){
+                    startQR()
+                }else{
+                    Toast.makeText(applicationContext,R.string.internet_no_title, Toast.LENGTH_SHORT).show()
+                }
                 true
             }
             R.id.action_logout -> {
@@ -227,7 +241,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                             loadPacientes()
                         },
                         Response.ErrorListener {error->
-                            Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
                         })
                 queue.add(jRequest)
             }
@@ -265,6 +279,62 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         Toast.makeText(this, "Presione atrás otra vez para salir", Toast.LENGTH_SHORT).show()
 
         Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
+    }
+
+    /**
+     * Function to execute when the network state is changed
+     */
+    private fun showMessage(isConnected: Boolean) {
+        if (!isConnected) {
+            hasConnection = 0
+            val messageToUser = R.string.internet_no_title
+            mSnackBar = Snackbar.make(findViewById(R.id.rootLayout), messageToUser, Snackbar.LENGTH_LONG) //Assume "rootLayout" as the root layout of every activity.
+            mSnackBar?.duration = Snackbar.LENGTH_INDEFINITE
+            mSnackBar?.show()
+        } else {
+            hasConnection = 1
+            loadPacientes()
+            mSnackBar?.dismiss()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ConnectivityReceiver.connectivityReceiverListener = this
+    }
+
+    /**
+     * Function to detect when the network state is changed
+     */
+    override fun onNetworkConnectionChanged(isConnected: Boolean) {
+        showMessage(isConnected)
+    }
+
+    /**
+     * Function to save temporary the data of the activity
+     */
+    override fun onSaveInstanceState(savedInstanceState: Bundle?) {
+        super.onSaveInstanceState(savedInstanceState)
+        var listaAux : Array<Patient>
+        if(adapter.patients!=null){
+            listaAux = adapter.getValues().toTypedArray()
+            savedInstanceState?.putParcelableArray("VALUES", listaAux)
+        }
+    }
+
+    /**
+     * Function to retreive the temporary stored data for the activity
+     */
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if(savedInstanceState!=null){
+            if(savedInstanceState.getParcelableArray("VALUES")!=null){
+                var listaAux : Array<Patient> = savedInstanceState.getParcelableArray("VALUES") as Array<Patient>
+                if(listaAux!=null){
+                    adapter.setPatient(listaAux.toMutableList())
+                }
+            }
+        }
     }
 
 }

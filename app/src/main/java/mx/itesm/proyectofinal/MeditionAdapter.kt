@@ -47,6 +47,10 @@ class MeditionAdapter(var context: Context,
         return numberOfItems
     }
 
+    fun getValues() : List<Medicion> {
+        return mediciones!!
+    }
+
     override fun onBindViewHolder(p0: MeditionViewHolder, p1: Int) {
         p0.bind(p1)
     }
