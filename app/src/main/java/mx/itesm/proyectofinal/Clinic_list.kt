@@ -90,6 +90,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2, ConnectivityR
 
         lista_clinica.adapter = adapter
 
+        fullListPatients = arrayListOf()
         loadPacientes()
 
         // Verify the action and get the query
@@ -429,6 +430,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2, ConnectivityR
                 var listaAux : Array<Patient> = savedInstanceState.getParcelableArray("VALUES") as Array<Patient>
                 if(listaAux!=null){
                     adapter.setPatient(listaAux.toMutableList())
+                    fullListPatients = listaAux.toMutableList()
                 }
             }
         }
