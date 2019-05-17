@@ -138,7 +138,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
         lista_pacientes.layoutManager = layoutManager
 
         lista_pacientes.adapter = adapter
-
+        fullListMediciones = arrayListOf()
         loadMediciones()
         floatingActionButton.setOnClickListener { onPress() }
         checkLocationPermission()
@@ -572,6 +572,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
                 var listaAux : Array<Medicion> = savedInstanceState.getParcelableArray("VALUES") as Array<Medicion>
                 if(listaAux!=null){
                     adapter.setMedicion(listaAux.toMutableList())
+                    fullListMediciones = listaAux.toMutableList()
                 }
             }
         }

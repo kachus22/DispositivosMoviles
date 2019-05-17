@@ -83,6 +83,8 @@ class MainActivity : AppCompatActivity() {
 
         gauge = findViewById(R.id.gauge)
         chart = findViewById(R.id.chart)
+        launchRefreshUiCheck()
+
         chart.setNoDataText(resources.getString(R.string.chart_nodata))
         chart.setNoDataTextColor(Color.GRAY)
         chart.setDrawBorders(false)
