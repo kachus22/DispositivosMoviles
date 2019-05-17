@@ -3,6 +3,7 @@ package mx.itesm.proyectofinal
 import Database.Medicion
 import Database.MedicionDatabase
 import Database.Patient
+import NetworkUtility.ConnectivityReceiver
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -27,11 +28,15 @@ import NetworkUtility.NetworkConnection
 import android.app.SearchManager
 import android.support.v7.widget.SearchView
 import android.util.Log
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.support.design.widget.Snackbar
 import com.android.volley.RequestQueue
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
+import java.nio.charset.Charset
 
 /**
  * Activity of Clinic list
@@ -39,8 +44,12 @@ import com.android.volley.toolbox.JsonObjectRequest
  * activity are shown.
  *
  */
-class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
+class Clinic_list : AppCompatActivity(), CustomItemClickListener2, ConnectivityReceiver.ConnectivityReceiverListener  {
 
+    //listener if the device is connected
+    private var hasConnection: Int = 0
+    //Bar to display if not connected
+    private var mSnackBar: Snackbar? = null
     //Values that are saved in the app as session variables
     lateinit var sharedPreference:SharedPreference
     // Database variable initialization
@@ -56,7 +65,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
 
 
     // The RecyclerView adapter declaration
-    val adapter = PatientAdapter(this, this)
+    var adapter = PatientAdapter(this, this)
 
     /**
      * Function that executes every time the activity is created, setting the layout and getting the
@@ -66,6 +75,8 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         super.onCreate(savedInstanceState)
         sharedPreference=SharedPreference(this)
         setContentView(R.layout.activity_clinic_list)
+        registerReceiver(ConnectivityReceiver(),
+                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         queue = Volley.newRequestQueue(this)
         val extras = intent.extras?: return
         profile = extras.getParcelable(PatientList.ACCOUNT)!!
@@ -108,7 +119,8 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         val jRequest =  StringRequest(Request.Method.GET, url,
                 Response.Listener<String> { response ->
                     // Display the first 500 characters of the response string.
-                    val patients = parseJsonPats(response, profile.mail)
+                    val str =  String(response.toByteArray(), charset("UTF-8"));
+                    val patients = parseJsonPats(str, profile.mail)
                     displayListPatients = patients
                     fullListPatients = patients
                     adapter.setPatient(patients)
@@ -121,7 +133,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                     lista_clinica.adapter?.notifyDataSetChanged()
                 },
                 Response.ErrorListener {error->
-                    Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(applicationContext,"No se pudo cargar pacientes.", Toast.LENGTH_SHORT).show()
                 })
         jRequest.tag = "Load"
         queue.add(jRequest)
@@ -189,7 +201,11 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId){
             R.id.action_sacnQR ->{
-                startQR()
+                if(hasConnection==1){
+                    startQR()
+                }else{
+                    Toast.makeText(applicationContext,R.string.internet_no_title, Toast.LENGTH_SHORT).show()
+                }
                 true
             }
             R.id.action_logout -> {
@@ -246,7 +262,7 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                             loadPacientes()
                         },
                         Response.ErrorListener {error->
-                            Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(applicationContext,"No se pudo agregar paciente.", Toast.LENGTH_SHORT).show()
                         })
                 queue.add(jRequest)
             }
@@ -286,25 +302,21 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
     }
 
-
     /**
-     * Handle queries from search. Update UI
+     * Handles a search and updates the UI
      */
-    private fun handleIntent(){
-        if (Intent.ACTION_SEARCH == intent.action) {
-            intent.getStringExtra(SearchManager.QUERY)?.also { query ->
-
-                displayListPatients = doMySearch(query).toMutableList()
-
-                adapter.updateData(displayListPatients)
-            }
-        }
+    fun handleSearch(query: String){
+        displayListPatients = doMySearch(query).toMutableList()
+        adapter.setPatient(displayListPatients)
+        lista_clinica.adapter = adapter
+        lista_clinica.adapter?.notifyDataSetChanged()
     }
+
 
     /**
      * Filter by query string
      */
-    fun doMySearch(query:String) = displayListPatients.filter { patient -> patient.FNameP!!.contains(query,true) }
+    fun doMySearch(query:String) = fullListPatients.filter { patient -> patient.FNameP!!.contains(query,true) }
 
     /**
      * onCreateOptionsMenu. crea un menú de opciones
@@ -324,6 +336,19 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
         // searchableInfo object represents the searchable configuration
         searchView?.setSearchableInfo(searchManager.getSearchableInfo(componentName))
 
+        //searchview object to auto update each time text changes on when submit search is pressed
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                handleSearch(newText)
+                return false
+            }
+            override fun onQueryTextSubmit(query: String): Boolean {
+                handleSearch(query)
+                return false
+            }
+        })
+
         searchView?.setOnQueryTextFocusChangeListener(object : View.OnFocusChangeListener {
 
             override fun onFocusChange(view: View, queryTextFocused: Boolean) {
@@ -332,23 +357,81 @@ class Clinic_list : AppCompatActivity(), CustomItemClickListener2 {
                 }
             }
         })
-
+        // Actualiza lista con todos los elementos al cerrar el SearchView
         searchView?.setOnCloseListener(object : SearchView.OnCloseListener {
 
             override fun onClose(): Boolean {
 
-                displayListPatients = fullListPatients
 
                 searchView?.onActionViewCollapsed()
-                supportInvalidateOptionsMenu()
 
-                adapter.updateData(displayListPatients)
+                adapter.setPatient(fullListPatients)
+                lista_clinica.adapter = adapter
+                lista_clinica.adapter?.notifyDataSetChanged()
+
 
                 return false
             }
         })
 
+
         return super.onCreateOptionsMenu(menu)
+    }
+
+    /**
+     * Function to execute when the network state is changed
+     */
+    private fun showMessage(isConnected: Boolean) {
+        if (!isConnected) {
+            hasConnection = 0
+            val messageToUser = R.string.internet_no_title
+            mSnackBar = Snackbar.make(findViewById(R.id.rootLayout), messageToUser, Snackbar.LENGTH_LONG) //Assume "rootLayout" as the root layout of every activity.
+            mSnackBar?.duration = Snackbar.LENGTH_INDEFINITE
+            mSnackBar?.show()
+        } else {
+            hasConnection = 1
+            loadPacientes()
+            mSnackBar?.dismiss()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ConnectivityReceiver.connectivityReceiverListener = this
+    }
+
+    /**
+     * Function to detect when the network state is changed
+     */
+    override fun onNetworkConnectionChanged(isConnected: Boolean) {
+        showMessage(isConnected)
+    }
+
+    /**
+     * Function to save temporary the data of the activity
+     */
+    override fun onSaveInstanceState(savedInstanceState: Bundle?) {
+        super.onSaveInstanceState(savedInstanceState)
+        var listaAux : Array<Patient>
+        if(adapter.patients!=null){
+            listaAux = adapter.getValues().toTypedArray()
+            savedInstanceState?.putParcelableArray("VALUES", listaAux)
+        }
+    }
+
+    /**
+     * Function to retreive the temporary stored data for the activity
+     */
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if(savedInstanceState!=null){
+            if(savedInstanceState.getParcelableArray("VALUES")!=null){
+                var listaAux : Array<Patient> = savedInstanceState.getParcelableArray("VALUES") as Array<Patient>
+                if(listaAux!=null){
+                    adapter.setPatient(listaAux.toMutableList())
+                }
+            }
+        }
     }
 
 }

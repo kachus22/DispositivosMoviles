@@ -74,5 +74,6 @@
 
     <string name="search_label">Buscar</string>
     <string name="search_hint">Buscar paciente</string>
+    <string name="search_hintM">Buscar medicion (fecha)</string>
 
 </resources>

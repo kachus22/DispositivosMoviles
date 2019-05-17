@@ -30,6 +30,10 @@ class PatientAdapter(var context: Context,
         return numberOfItems
     }
 
+    fun getValues() : List<Patient> {
+        return patients!!
+    }
+
     override fun onBindViewHolder(p0: PatientViewHolder, p1: Int) {
         p0.bind(p1)
     }
