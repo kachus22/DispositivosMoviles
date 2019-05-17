@@ -81,8 +81,6 @@ class MainActivity : AppCompatActivity() {
         BLEConnectionManager.initBLEService(this@MainActivity)
         connectDevice(mDevice.mDeviceAddress)
 
-        launchRefreshUiCheck()
-
         gauge = findViewById(R.id.gauge)
         chart = findViewById(R.id.chart)
         chart.setNoDataText(resources.getString(R.string.chart_nodata))
@@ -90,6 +88,8 @@ class MainActivity : AppCompatActivity() {
         chart.setDrawBorders(false)
         chart.isKeepPositionOnRotation = true
         chart.description.isEnabled = false
+
+        launchRefreshUiCheck()
     }
 
 
@@ -237,6 +237,8 @@ class MainActivity : AppCompatActivity() {
                                             val dataSet = LineDataSet(entries, resources.getString(R.string.chart_label)) // add entries to dataset
                                             dataSet.color = resources.getColor(R.color.colorButton)
                                             dataSet.setDrawCircles(false)
+
+                                            Log.d("Data", values.toString())
 
                                             val lineData = LineData(dataSet)
                                             chart.data = lineData
