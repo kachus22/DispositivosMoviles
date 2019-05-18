@@ -26,6 +26,7 @@ import android.app.AlertDialog
 import android.app.SearchManager
 import android.arch.lifecycle.Observer
 import android.bluetooth.BluetoothAdapter
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -41,6 +42,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -50,6 +52,9 @@ import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.android.synthetic.main.activity_patient_list.*
 import org.jetbrains.anko.doAsync
@@ -81,6 +86,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
         const val LOAD_MEASURE = 4
         const val TAKE_MEASURE = 3
         var profilePatient: signInActivity.Companion.Profile? = null
+        var bluetoothOn: Boolean = false
 
     }
 
@@ -101,6 +107,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
     lateinit var profile: signInActivity.Companion.Profile
     private var mDevice: BleDeviceData = BleDeviceData("","")
 
+    lateinit var uiContext: Context
     /**
      * Creates the Patient List activity and inflates the view. Also initializes database calls.
      */
@@ -124,6 +131,8 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
 
         val type = extras.getInt(ACCOUNT_TYPE)
 
+        uiContext = this
+
 //        actionBar.setTitle("Hello world App")
         if(type == 1){
             supportActionBar?.setTitle(R.string.type_patient)
@@ -142,12 +151,14 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
         loadMediciones()
         floatingActionButton.setOnClickListener { onPress() }
         checkLocationPermission()
+
+        registerServiceReceiver()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         BLEConnectionManager.disconnect()
-//        unRegisterServiceReceiver() TODO : check this
+        unRegisterServiceReceiver()
+        super.onDestroy()
     }
 
     /**
@@ -214,13 +225,16 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
 
     // Starts the MainActivity, which starts measuring data from the bluetooth device.
     private fun onPress() {
-        if (mDevice.mDeviceAddress == "") {
-            val intent = Intent(this, DeviceScanActivity::class.java)
-            startActivityForResult(intent, BLUETOOTH_DEVICE)
-        } else {
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra(BLUETOOTH_ADDRESS, mDevice)
-            startActivityForResult(intent, TAKE_MEASURE)
+        initBLEModule()
+        if(bluetoothOn){
+            if (mDevice.mDeviceAddress == "") {
+                val intent = Intent(this, DeviceScanActivity::class.java)
+                startActivityForResult(intent, BLUETOOTH_DEVICE)
+            } else {
+                val intent = Intent(this, MainActivity::class.java)
+                intent.putExtra(BLUETOOTH_ADDRESS, mDevice)
+                startActivityForResult(intent, TAKE_MEASURE)
+            }
         }
     }
 
@@ -232,12 +246,20 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
                 if (resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, R.string.bluetooth_permission_granted,
                             Toast.LENGTH_LONG).show()
+                    bluetoothOn = true
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     Toast.makeText(this, R.string.bluetooth_permission_not_granted,
                             Toast.LENGTH_LONG).show()
+                    bluetoothOn = false
+                }
+                else {
+                    Toast.makeText(this, R.string.bluetooth_permission_not_granted,
+                            Toast.LENGTH_LONG).show()
+                    bluetoothOn = false
                 }
             }
             BLUETOOTH_DEVICE -> {
+                bluetoothOn = false
                 if (resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, R.string.bluetooth_device_connected,
                             Toast.LENGTH_LONG).show()
@@ -252,9 +274,12 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
                 }
             }
             TAKE_MEASURE -> {
+                bluetoothOn = false
                 if (resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, R.string.bluetooth_device_disconnected_ok,
                             Toast.LENGTH_LONG).show()
+                    bluetoothOn = false
+                    mDevice.mDeviceAddress = ""
                     loadMediciones()
                 }
                 else{
@@ -486,6 +511,9 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
+        else{
+            bluetoothOn = true
+        }
     }
 
     /**
@@ -575,6 +603,68 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
                     fullListMediciones = listaAux.toMutableList()
                 }
             }
+        }
+    }
+
+    private val mStatusReceiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                 val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                                                 BluetoothAdapter.ERROR)
+                 when (state) {
+                     BluetoothAdapter.STATE_OFF -> {
+                         bluetoothOn = false
+                         Toast.makeText(uiContext, R.string.bluetooth_turned_off,
+                                 Toast.LENGTH_LONG).show()
+                     }
+                     BluetoothAdapter.STATE_TURNING_OFF -> {
+                         bluetoothOn = false
+                         Toast.makeText(uiContext, R.string.bluetooth_turning_off,
+                                 Toast.LENGTH_LONG).show()
+                     }
+                     BluetoothAdapter.STATE_ON -> {
+                         bluetoothOn = true
+                         Toast.makeText(uiContext, R.string.bluetooth_turned_on,
+                                 Toast.LENGTH_LONG).show()
+                     }
+                     BluetoothAdapter.STATE_TURNING_ON -> {
+                         Toast.makeText(uiContext, R.string.bluetooth_turning_on,
+                                 Toast.LENGTH_LONG).show()
+                     }
+                 }
+             }
+        }
+    }
+
+    /**
+     * Intent filter for Handling BLEService broadcast.
+     */
+    private fun makeStatusUpdateIntentFilter(): IntentFilter {
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+
+        return intentFilter
+    }
+
+    /**
+     * Register BLE Status update receiver
+     */
+    private fun registerServiceReceiver() {
+        this.registerReceiver(mStatusReceiver, makeStatusUpdateIntentFilter())
+    }
+
+
+    /**
+     * Unregister BLE Status update receiver
+     */
+    private fun unRegisterServiceReceiver() {
+        try {
+            this.unregisterReceiver(mStatusReceiver)
+        } catch (e: Exception) {
+            //May get an exception while user denies the permission and user exists the app
+            Log.e(TAG, e.message)
         }
     }
 
