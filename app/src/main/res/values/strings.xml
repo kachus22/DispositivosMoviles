@@ -76,4 +76,9 @@
     <string name="search_hint">Buscar paciente</string>
     <string name="search_hintM">Buscar medicion (fecha)</string>
 
+    <string name="bluetooth_turned_on">Bluetooth Activado</string>
+    <string name="bluetooth_turned_off">Bluetooth Desactivado</string>
+    <string name="bluetooth_turning_on">Encendiendo Bluetooth</string>
+    <string name="bluetooth_turning_off">Apagando Bluetooth</string>
+
 </resources>
