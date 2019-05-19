@@ -123,6 +123,7 @@ class PatientList : AppCompatActivity(), CustomItemClickListener, ConnectivityRe
         if(ACTIV == "clinic") {
             val perf = extras.getParcelable<Patient>(ACCOUNT)
             this.profile = signInActivity.Companion.Profile(perf.mailC!!, perf.FNameP!!, ""!!)
+            profilePatient = profile
         }
         else{
             profile = extras.getParcelable(ACCOUNT)!!

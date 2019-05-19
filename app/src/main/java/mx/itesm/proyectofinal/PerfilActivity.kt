@@ -50,6 +50,7 @@ class PerfilActivity : AppCompatActivity() {
         this.profile = extras.getParcelable(PatientList.ACCOUNT)!!
 
         perfil_nombre.setText(profile.name, TextView.BufferType.EDITABLE)
+        perfil_nombre.isEnabled = false
 
         val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
         val jRequest =  StringRequest(Request.Method.GET, url,
@@ -122,28 +123,33 @@ class PerfilActivity : AppCompatActivity() {
      * Sends request to server to modify the data
      **/
     fun sendRequest(){
-        val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
-        var se:String
-        if(but_H.isChecked){
-            se = "M"
+        if(perfil_edad.text.toString().matches("\\d+?".toRegex())){
+            val url = "https://heart-app-tec.herokuapp.com/patients/" + profile.mail
+            var se:String
+            if(but_H.isChecked){
+                se = "M"
+            }
+            else{
+                se = "F"
+            }
+            val map: HashMap<String, Any?> = hashMapOf("name" to perfil_nombre.text.toString(),
+                    "age" to perfil_edad.text.toString().toInt(), "sex" to se, "clinic" to null)
+            println(JSONObject(map).toString())
+            val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
+                    Response.Listener<JSONObject> { response ->
+                        // Display the first 500 characters of the response string.
+                        var json = response
+                        Toast.makeText(applicationContext,"Datos guardados exitosamente.", Toast.LENGTH_SHORT).show()
+                    },
+                    Response.ErrorListener { error->
+                        Toast.makeText(applicationContext,"No se pudo guardar los datos.", Toast.LENGTH_SHORT).show()
+                    })
+
+            this.queue.add(jRequest)
         }
         else{
-            se = "F"
+            Toast.makeText(applicationContext,"Formato de edad incorrecto.", Toast.LENGTH_SHORT).show()
         }
-        val map: HashMap<String, Any?> = hashMapOf("name" to perfil_nombre.text.toString(),
-                "age" to perfil_edad.text.toString().toInt(), "sex" to se, "clinic" to null)
-        println(JSONObject(map).toString())
-        val jRequest =  JsonObjectRequest(Request.Method.POST, url, JSONObject(map),
-                Response.Listener<JSONObject> { response ->
-                    // Display the first 500 characters of the response string.
-                    var json = response
-                    Toast.makeText(applicationContext,"Datos guardados exitosamente.", Toast.LENGTH_SHORT).show()
-                },
-                Response.ErrorListener { error->
-                    Toast.makeText(applicationContext,"No se pudo guardar los datos.", Toast.LENGTH_SHORT).show()
-                })
-
-        this.queue.add(jRequest)
     }
 
     // Handles clicking the back button and edit profile button
