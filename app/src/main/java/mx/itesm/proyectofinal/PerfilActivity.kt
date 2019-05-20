@@ -64,6 +64,9 @@ class PerfilActivity : AppCompatActivity() {
                         "F"->{
                             radiobuttons.check(R.id.but_M)
                         }
+                        "D"->{
+                            radiobuttons.check(R.id.but_D)
+                        }
                     }
                     perfil_edad.setText(json.get("age").toString(),TextView.BufferType.EDITABLE)
                 },
@@ -79,16 +82,27 @@ class PerfilActivity : AppCompatActivity() {
             perfil_edad.isEnabled = false
             but_H.isClickable = false
             but_M.isClickable = false
+            but_D.isClickable = false
             floatingActionButtonSave.hide()
         }
         else{
             but_H.setOnClickListener {
                 val check = findViewById<RadioButton>(R.id.but_M)
                 check.isChecked = false
+                val check2 = findViewById<RadioButton>(R.id.but_D)
+                check2.isChecked = false
             }
             but_M.setOnClickListener {
                 val check = findViewById<RadioButton>(R.id.but_H)
                 check.isChecked = false
+                val check2 = findViewById<RadioButton>(R.id.but_D)
+                check2.isChecked = false
+            }
+            but_D.setOnClickListener {
+                val check = findViewById<RadioButton>(R.id.but_M)
+                check.isChecked = false
+                val check2 = findViewById<RadioButton>(R.id.but_H)
+                check2.isChecked = false
             }
         }
 
@@ -129,8 +143,11 @@ class PerfilActivity : AppCompatActivity() {
             if(but_H.isChecked){
                 se = "M"
             }
-            else{
+            else if(but_M.isChecked){
                 se = "F"
+            }
+            else{
+                se = "D"
             }
             val map: HashMap<String, Any?> = hashMapOf("name" to perfil_nombre.text.toString(),
                     "age" to perfil_edad.text.toString().toInt(), "sex" to se, "clinic" to null)

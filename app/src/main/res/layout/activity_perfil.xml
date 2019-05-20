@@ -71,7 +71,7 @@
                     android:id="@+id/but_H"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="90dp"
+                    android:layout_marginStart="30dp"
                     android:layout_marginEnd="32dp"
                     android:fontFamily="@font/allerta"
                     android:text="Masculino"
@@ -84,13 +84,23 @@
                     android:id="@+id/but_M"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginEnd="100dp"
+
                     android:fontFamily="@font/allerta"
                     android:text="Femenino"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/but_H"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <RadioButton
+                    android:id="@+id/but_D"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="32dp"
+                    android:fontFamily="@font/allerta"
+                    android:text="Indefinido"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/but_M"
                     app:layout_constraintTop_toTopOf="parent" />
             </android.support.constraint.ConstraintLayout>
         </RadioGroup>

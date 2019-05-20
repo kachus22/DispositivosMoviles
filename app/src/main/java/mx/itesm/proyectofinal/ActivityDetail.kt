@@ -60,12 +60,14 @@ class ActivityDetail : AppCompatActivity() {
 
         val manualResults = measurementObj.manSistolica + " / " + measurementObj.manDiastolica
         tv_manual_results.text = manualResults
+        tv_device_results.text = measurementObj.appSistolica + " / " + measurementObj.appDiastolica
         if(measurementObj.brazo == "I"){
             tv_arm_results.text = "Izquierdo"
         }
         else if(measurementObj.brazo == "D") {
             tv_arm_results.text = "Derecho"
         }
+
         if(measurementObj.grafica != null) {
             val values = measurementObj.grafica!!.split(';')
             val entries: MutableList<Entry> = mutableListOf()
